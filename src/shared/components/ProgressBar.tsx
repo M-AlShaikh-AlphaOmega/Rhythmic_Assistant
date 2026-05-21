@@ -8,11 +8,21 @@ export type ProgressBarProps = {
 };
 
 // Thin full-width progress bar (4dp height) tracking session elapsed time.
-export const ProgressBar = ({ progress }: ProgressBarProps) => (
-  <View style={styles.track}>
-    <View style={[styles.fill, { width: `${Math.min(Math.max(progress, 0), 1) * 100}%` }]} />
-  </View>
-);
+export const ProgressBar = ({ progress }: ProgressBarProps) => {
+  const clamped = Math.min(Math.max(progress, 0), 1);
+  const percent = Math.round(clamped * 100);
+
+  return (
+    <View
+      style={styles.track}
+      accessibilityRole="progressbar"
+      accessibilityLabel="Session progress"
+      accessibilityValue={{ min: 0, max: 100, now: percent }}
+    >
+      <View style={[styles.fill, { width: `${clamped * 100}%` }]} />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create(theme => ({
   track: {

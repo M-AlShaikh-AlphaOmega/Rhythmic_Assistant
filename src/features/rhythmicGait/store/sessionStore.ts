@@ -2,8 +2,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
+import { getAnalytics } from '../../../shared/services/analytics';
 import { getPaceById, toSeconds } from './catalogData';
 import type { SessionConfig, SessionResult, SessionRuntime, SessionState } from './types';
+
+// Builds the common session context used by every telemetry payload.
+const buildSessionContext = (config: SessionConfig) => {
+  const pace = getPaceById(config.paceId);
+  return {
+    paceId: config.paceId,
+    cue: config.cue,
+    durationMinutes: config.durationMinutes,
+    bpm: pace.bpm,
+  };
+};
 
 const DEFAULT_CONFIG: SessionConfig = {
   cue: 'audio',
@@ -105,6 +117,7 @@ export const useSessionStore = create<SessionState>()(
             countdownValue: 3,
           },
         }));
+        getAnalytics().track('session_started', buildSessionContext(config));
       },
 
       // Called each timer tick with the current system timestamp.
@@ -133,6 +146,7 @@ export const useSessionStore = create<SessionState>()(
       },
 
       pause: () => {
+        const { config, runtime } = get();
         set(s => ({
           runtime: {
             ...s.runtime,
@@ -140,10 +154,15 @@ export const useSessionStore = create<SessionState>()(
             pausedAt: Date.now(),
           },
         }));
+        getAnalytics().track('session_paused', {
+          ...buildSessionContext(config),
+          elapsedSeconds: runtime.elapsedSeconds,
+          remainingSeconds: runtime.remainingSeconds,
+        });
       },
 
       resume: () => {
-        const { runtime } = get();
+        const { config, runtime } = get();
         if (runtime.pausedAt === null) return;
         const pauseDuration = (Date.now() - runtime.pausedAt) / 1000;
         set(s => ({
@@ -154,6 +173,11 @@ export const useSessionStore = create<SessionState>()(
             accumulatedPauseSeconds: s.runtime.accumulatedPauseSeconds + pauseDuration,
           },
         }));
+        getAnalytics().track('session_resumed', {
+          ...buildSessionContext(config),
+          elapsedSeconds: runtime.elapsedSeconds,
+          remainingSeconds: runtime.remainingSeconds,
+        });
       },
 
       stop: () => {
@@ -161,6 +185,12 @@ export const useSessionStore = create<SessionState>()(
         set({
           runtime: { ...runtime, status: 'completed' },
           lastResult: buildResult(config, runtime, false),
+        });
+        getAnalytics().track('session_stopped', {
+          ...buildSessionContext(config),
+          elapsedSeconds: runtime.elapsedSeconds,
+          remainingSeconds: runtime.remainingSeconds,
+          wasFullyCompleted: false,
         });
       },
 
@@ -170,6 +200,7 @@ export const useSessionStore = create<SessionState>()(
           runtime: { ...runtime, status: 'completed', remainingSeconds: 0 },
           lastResult: buildResult(config, runtime, true),
         });
+        getAnalytics().track('session_completed', buildSessionContext(config));
       },
 
       // Resets runtime to idle defaults. Config is intentionally preserved.

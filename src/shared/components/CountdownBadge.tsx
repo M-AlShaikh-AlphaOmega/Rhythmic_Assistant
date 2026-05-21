@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Text, View } from 'react-native';
+import { Animated, Text } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 export type CountdownBadgeProps = {
@@ -32,8 +32,15 @@ export const CountdownBadge = ({ value }: CountdownBadgeProps) => {
   }, [value, scale, opacity]);
 
   return (
-    <Animated.View style={[styles.badge, { transform: [{ scale }], opacity }]}>
-      <Text style={styles.digit}>{value}</Text>
+    <Animated.View
+      style={[styles.badge, { transform: [{ scale }], opacity }]}
+      accessibilityRole="text"
+      accessibilityLabel={`Starting in ${value}`}
+      accessibilityLiveRegion="assertive"
+    >
+      <Text style={styles.digit} importantForAccessibility="no-hide-descendants">
+        {value}
+      </Text>
     </Animated.View>
   );
 };

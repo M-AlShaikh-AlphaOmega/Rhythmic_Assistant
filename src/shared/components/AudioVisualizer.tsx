@@ -7,20 +7,24 @@ export type AudioVisualizerProps = {
 };
 
 const BAR_COUNT = 11;
+const BAR_MAX_HEIGHT = 64;
+const BAR_IDLE_HEIGHT_RATIO = 8 / BAR_MAX_HEIGHT;
 
-// Per-bar min/max height ranges that produce a natural staggered wave effect.
-const BAR_HEIGHTS: Array<[number, number]> = [
-  [8, 20],
-  [12, 32],
-  [16, 44],
-  [20, 52],
-  [24, 60],
-  [28, 64],
-  [24, 60],
-  [20, 52],
-  [16, 44],
-  [12, 32],
-  [8, 20],
+// Per-bar min/max scaleY ratios (relative to BAR_MAX_HEIGHT) that produce the
+// natural staggered wave effect. Heights from the original spec are divided by
+// BAR_MAX_HEIGHT to obtain the equivalent scaleY range.
+const BAR_SCALE: Array<[number, number]> = [
+  [8 / BAR_MAX_HEIGHT, 20 / BAR_MAX_HEIGHT],
+  [12 / BAR_MAX_HEIGHT, 32 / BAR_MAX_HEIGHT],
+  [16 / BAR_MAX_HEIGHT, 44 / BAR_MAX_HEIGHT],
+  [20 / BAR_MAX_HEIGHT, 52 / BAR_MAX_HEIGHT],
+  [24 / BAR_MAX_HEIGHT, 60 / BAR_MAX_HEIGHT],
+  [28 / BAR_MAX_HEIGHT, 1],
+  [24 / BAR_MAX_HEIGHT, 60 / BAR_MAX_HEIGHT],
+  [20 / BAR_MAX_HEIGHT, 52 / BAR_MAX_HEIGHT],
+  [16 / BAR_MAX_HEIGHT, 44 / BAR_MAX_HEIGHT],
+  [12 / BAR_MAX_HEIGHT, 32 / BAR_MAX_HEIGHT],
+  [8 / BAR_MAX_HEIGHT, 20 / BAR_MAX_HEIGHT],
 ];
 
 // Color assignment by bar index position (low → mid → high → mid → low).
@@ -33,21 +37,21 @@ const barColor = (theme: ReturnType<typeof useUnistyles>['theme'], index: number
 };
 
 // 11-bar animated visualizer for rhythm feedback during active/paused session states.
-// Uses core Animated.Value (JS thread) — upgrade to Reanimated worklets when available.
-// PERF: each bar drives one Animated.Value; no React state changes per frame.
+// Animates `transform: scaleY` (native-driver eligible) instead of `height` so the
+// entire animation runs on the UI thread — no JS-thread work per frame.
 export const AudioVisualizer = ({ active }: AudioVisualizerProps) => {
   const { theme } = useUnistyles();
   const animatedValues = useRef<Animated.Value[]>(
-    Array.from({ length: BAR_COUNT }, () => new Animated.Value(BAR_HEIGHTS[0]![0]))
+    Array.from({ length: BAR_COUNT }, () => new Animated.Value(BAR_IDLE_HEIGHT_RATIO))
   ).current;
 
   useEffect(() => {
     if (!active) {
       const stops = animatedValues.map(val =>
         Animated.timing(val, {
-          toValue: 8,
+          toValue: BAR_IDLE_HEIGHT_RATIO,
           duration: 200,
-          useNativeDriver: false,
+          useNativeDriver: true,
         })
       );
       Animated.parallel(stops).start();
@@ -55,20 +59,20 @@ export const AudioVisualizer = ({ active }: AudioVisualizerProps) => {
     }
 
     const loops = animatedValues.map((val, i) => {
-      const [minH, maxH] = BAR_HEIGHTS[i]!;
+      const [minScale, maxScale] = BAR_SCALE[i]!;
       const delay = i * 60;
       return Animated.loop(
         Animated.sequence([
           Animated.delay(delay),
           Animated.timing(val, {
-            toValue: maxH,
+            toValue: maxScale,
             duration: 350,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
           Animated.timing(val, {
-            toValue: minH,
+            toValue: minScale,
             duration: 350,
-            useNativeDriver: false,
+            useNativeDriver: true,
           }),
         ])
       );
@@ -86,9 +90,9 @@ export const AudioVisualizer = ({ active }: AudioVisualizerProps) => {
           style={[
             styles.bar,
             {
-              height: val,
               backgroundColor: active ? barColor(theme, i) : theme.colors.viz.barIdle,
               opacity: active ? 1 : theme.opacity.pausedVisualizer,
+              transform: [{ scaleY: val }],
             },
           ]}
         />
@@ -100,7 +104,7 @@ export const AudioVisualizer = ({ active }: AudioVisualizerProps) => {
 const styles = StyleSheet.create(theme => ({
   container: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     justifyContent: 'center',
     gap: theme.spacing.s1,
     paddingVertical: theme.spacing.s3,
@@ -111,6 +115,7 @@ const styles = StyleSheet.create(theme => ({
   },
   bar: {
     width: 4,
+    height: BAR_MAX_HEIGHT,
     borderRadius: theme.radius.full,
   },
 }));

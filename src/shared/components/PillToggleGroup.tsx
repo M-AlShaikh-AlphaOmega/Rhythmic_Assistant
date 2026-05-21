@@ -47,7 +47,7 @@ const styles = StyleSheet.create(theme => ({
     justifyContent: 'center',
     paddingVertical: theme.spacing.s3,
     paddingHorizontal: theme.spacing.s4,
-    borderRadius: theme.radius.sm,
+    borderRadius: theme.radius.full,
     borderWidth: 1.5,
   },
   pillDefault: {
