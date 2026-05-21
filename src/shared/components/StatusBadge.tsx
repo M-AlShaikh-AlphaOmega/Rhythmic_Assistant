@@ -17,7 +17,12 @@ export const StatusBadge = ({ variant }: StatusBadgeProps) => {
   const label = isActive ? 'Active' : 'Paused';
 
   return (
-    <View style={[styles.badge, isActive ? styles.activeBadge : styles.pausedBadge]}>
+    <View
+      style={[styles.badge, isActive ? styles.activeBadge : styles.pausedBadge]}
+      accessibilityRole="text"
+      accessibilityLabel={isActive ? 'Session active' : 'Session paused'}
+      accessibilityLiveRegion="polite"
+    >
       <Ionicons name={iconName} size={theme.iconSize.sm} color={iconColor} />
       <Text style={[styles.label, isActive ? styles.activeLabel : styles.pausedLabel]}>
         {label}

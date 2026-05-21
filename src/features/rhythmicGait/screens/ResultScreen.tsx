@@ -12,8 +12,10 @@ import {
   StatRow,
 } from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
+import { getAnalytics } from '../../../shared/services/analytics';
 import {
   getCueById,
+  getPaceById,
   useLastResult,
   useSessionConfig,
   useSessionStore,
@@ -39,18 +41,26 @@ export default function ResultScreen() {
   }, [result, reset, navigation]);
 
   const handleDone = useCallback(() => {
+    getAnalytics().track('done', {});
     reset();
     navigation.popToTop();
   }, [reset, navigation]);
 
   const handleWalkAgain = useCallback(() => {
+    const pace = getPaceById(config.paceId);
+    getAnalytics().track('walk_again', {
+      paceId: config.paceId,
+      cue: config.cue,
+      durationMinutes: config.durationMinutes,
+      bpm: pace.bpm,
+    });
     start();
     if (config.countInEnabled) {
       navigation.navigate(RhythmicGaitRoutes.Countdown);
     } else {
       navigation.navigate(RhythmicGaitRoutes.Running);
     }
-  }, [start, config.countInEnabled, navigation]);
+  }, [start, config.countInEnabled, config.paceId, config.cue, config.durationMinutes, navigation]);
 
   if (result === undefined) return null;
 

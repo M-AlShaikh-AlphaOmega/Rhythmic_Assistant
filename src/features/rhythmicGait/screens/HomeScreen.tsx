@@ -14,6 +14,7 @@ import {
   ToggleRow,
 } from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
+import { t } from '../../../shared/i18n';
 import { HeroBanner } from '../components/HeroBanner';
 import { useSessionRouteGuard } from '../navigation/useSessionRouteGuard';
 import { CUES, DURATIONS, PACES, useSessionConfig, useSessionStore } from '../store';
@@ -49,11 +50,11 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Rhythmic Gait Assistant" onBack={() => navigation.goBack()} />
+      <ScreenHeader title={t('home.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <HeroBanner />
 
-        <SectionCard title="Choose your cue">
+        <SectionCard title={t('home.cue.sectionTitle')}>
           <View style={styles.cueRow}>
             {CUES.map(cue => (
               <OptionTile
@@ -68,7 +69,7 @@ export default function HomeScreen() {
           </View>
         </SectionCard>
 
-        <SectionCard title="Pick a pace">
+        <SectionCard title={t('home.pace.sectionTitle')}>
           {PACES.map(pace => (
             <ListOption
               key={pace.id}
@@ -83,7 +84,7 @@ export default function HomeScreen() {
           ))}
         </SectionCard>
 
-        <SectionCard title="Duration">
+        <SectionCard title={t('home.duration.sectionTitle')}>
           <PillToggleGroup
             options={DURATIONS.map(d => ({ value: String(d.value), label: d.label }))}
             value={String(config.durationMinutes)}
@@ -91,23 +92,23 @@ export default function HomeScreen() {
           />
         </SectionCard>
 
-        <SectionCard title="Preferences">
+        <SectionCard title={t('home.preferences.sectionTitle')}>
           <ToggleRow
-            title="3-second count-in"
-            description="A short calm countdown before music begins."
+            title={t('home.preferences.countIn.title')}
+            description={t('home.preferences.countIn.description')}
             value={config.countInEnabled}
             onValueChange={v => setConfig({ countInEnabled: v })}
             showDivider
           />
           <ToggleRow
-            title="End chime"
-            description="A gentle sound when the session finishes."
+            title={t('home.preferences.endChime.title')}
+            description={t('home.preferences.endChime.description')}
             value={config.endChimeEnabled}
             onValueChange={v => setConfig({ endChimeEnabled: v })}
           />
         </SectionCard>
 
-        <Button label="Start walking" onPress={handleStart} fullWidth />
+        <Button label={t('home.start')} onPress={handleStart} fullWidth />
       </ScrollView>
     </View>
   );

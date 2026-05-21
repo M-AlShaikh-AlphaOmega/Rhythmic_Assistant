@@ -29,31 +29,38 @@ export const CircularProgressTimer = ({
   const arcColor = active ? theme.colors.accent.info : theme.colors.text.secondary;
 
   return (
-    <View style={styles.ring}>
-      <Svg width={RING_SIZE} height={RING_SIZE}>
-        <Circle
-          cx={RING_SIZE / 2}
-          cy={RING_SIZE / 2}
-          r={RADIUS}
-          stroke={theme.colors.border.default}
-          strokeWidth={STROKE}
-          fill="none"
-        />
-        <Circle
-          cx={RING_SIZE / 2}
-          cy={RING_SIZE / 2}
-          r={RADIUS}
-          stroke={arcColor}
-          strokeWidth={STROKE}
-          fill="none"
-          strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
-          strokeDashoffset={dashOffset}
-          strokeLinecap="round"
-          // Rotate -90° so the arc starts at the top (12 o'clock) instead of 3 o'clock.
-          transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
-        />
-      </Svg>
-      <View style={styles.center} pointerEvents="none">
+    <View
+      style={styles.ring}
+      accessibilityRole="timer"
+      accessibilityLabel={`${timeLabel} remaining`}
+      accessibilityLiveRegion="polite"
+    >
+      <View importantForAccessibility="no-hide-descendants">
+        <Svg width={RING_SIZE} height={RING_SIZE}>
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RADIUS}
+            stroke={theme.colors.border.default}
+            strokeWidth={STROKE}
+            fill="none"
+          />
+          <Circle
+            cx={RING_SIZE / 2}
+            cy={RING_SIZE / 2}
+            r={RADIUS}
+            stroke={arcColor}
+            strokeWidth={STROKE}
+            fill="none"
+            strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
+            strokeDashoffset={dashOffset}
+            strokeLinecap="round"
+            // Rotate -90° so the arc starts at the top (12 o'clock) instead of 3 o'clock.
+            transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+          />
+        </Svg>
+      </View>
+      <View style={styles.center} pointerEvents="none" importantForAccessibility="no-hide-descendants">
         <Text style={styles.timer}>{timeLabel}</Text>
         <Text style={styles.remainingLabel}>remaining</Text>
       </View>

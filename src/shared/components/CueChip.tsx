@@ -27,12 +27,18 @@ export const CueChip = ({ cue, bpm }: CueChipProps) => {
   const { theme } = useUnistyles();
 
   return (
-    <View style={styles.row}>
-      <View style={styles.chip}>
+    <View
+      style={styles.row}
+      accessibilityRole="text"
+      accessibilityLabel={`Cue ${CUE_LABEL[cue]} at ${bpm} BPM`}
+    >
+      <View style={styles.chip} importantForAccessibility="no-hide-descendants">
         <Ionicons name={CUE_ICON[cue]} size={theme.iconSize.sm} color={theme.colors.text.primary} />
         <Text style={styles.label}>{CUE_LABEL[cue]}</Text>
       </View>
-      <Text style={styles.bpm}>{`· ${bpm} BPM`}</Text>
+      <Text style={styles.bpm} importantForAccessibility="no-hide-descendants">
+        {`· ${bpm} BPM`}
+      </Text>
     </View>
   );
 };
