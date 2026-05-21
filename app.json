@@ -4,28 +4,30 @@
     "slug": "Rhythmic_Assistant",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
+    "icon": "./assets/brand-badge-icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/brand-badge-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/brand-badge-icon.png"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/brand-badge-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "icon": "./assets/brand-badge-icon.png",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.Rhythmic_Assistant"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/brand-badge-icon.png"
     }
   }
 }
