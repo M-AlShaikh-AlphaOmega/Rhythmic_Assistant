@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect } from 'react';
 import { Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet } from 'react-native-unistyles';
 
 import {
@@ -43,6 +44,7 @@ const formatTime = (seconds: number): string => {
 // Auto-transitions to Result when session phase becomes 'completed'.
 export default function RunningScreen() {
   const navigation = useNavigation<NavProp>();
+  const insets = useSafeAreaInsets();
   const phase = useSessionPhase();
   const isRunning = useIsRunning();
   const isPaused = useIsPaused();
@@ -73,10 +75,12 @@ export default function RunningScreen() {
     ? 'Session paused. Tap Resume when ready.'
     : 'Follow each cue with a comfortable, steady step.';
 
+  const percentComplete = Math.round(progress * 100);
+
   return (
     <View style={styles.container}>
       <ScreenHeader
-        title="Walking Session"
+        title="Rhythmic Gait Assistant"
         // NOTE: back is a no-op — gesture is disabled at the navigator level and
         // there is no safe way to cancel a running session via back.
         onBack={() => {}}
@@ -112,40 +116,43 @@ export default function RunningScreen() {
           <Text style={styles.caption}>{caption}</Text>
         </SectionCard>
 
-        {/* Button row + progress bar */}
-        <View style={styles.bottomBlock}>
-          <View style={styles.buttonRow}>
-            <View style={styles.buttonFlex}>
-              {isPaused ? (
-                <Button
-                  variant="secondary"
-                  iconName="play"
-                  label="Resume"
-                  onPress={resume}
-                  fullWidth
-                />
-              ) : (
-                <Button
-                  variant="secondary"
-                  iconName="pause"
-                  label="Pause"
-                  onPress={pause}
-                  fullWidth
-                />
-              )}
-            </View>
-            <View style={styles.buttonFlex}>
+        {/* Button row */}
+        <View style={styles.buttonRow}>
+          <View style={styles.buttonFlex}>
+            {isPaused ? (
               <Button
-                variant="primary"
-                iconName="stop-circle"
-                label="Stop"
-                onPress={handleStop}
+                variant="secondary"
+                iconName="play"
+                label="Resume"
+                onPress={resume}
                 fullWidth
               />
-            </View>
+            ) : (
+              <Button
+                variant="secondary"
+                iconName="pause"
+                label="Pause"
+                onPress={pause}
+                fullWidth
+              />
+            )}
           </View>
-          <ProgressBar progress={progress} />
+          <View style={styles.buttonFlex}>
+            <Button
+              variant="primary"
+              iconName="stop-circle"
+              label="Stop"
+              onPress={handleStop}
+              fullWidth
+            />
+          </View>
         </View>
+      </View>
+
+      {/* Progress bar + label — full-width outside padded content */}
+      <View style={[styles.progressFooter, { paddingBottom: insets.bottom + 8 }]}>
+        <ProgressBar progress={progress} />
+        <Text style={styles.progressLabel}>{percentComplete}% complete</Text>
       </View>
     </View>
   );
@@ -207,14 +214,24 @@ const styles = StyleSheet.create(theme => ({
     textAlign: 'center',
     lineHeight: theme.typography.size.caption * theme.typography.lineHeight.relaxed,
   },
-  bottomBlock: {
-    gap: theme.spacing.s4,
-  },
   buttonRow: {
     flexDirection: 'row',
     gap: theme.spacing.s3,
   },
   buttonFlex: {
     flex: 1,
+  },
+  progressFooter: {
+    paddingHorizontal: theme.spacing.s4,
+    paddingTop: theme.spacing.s3,
+    gap: theme.spacing.s2,
+    backgroundColor: theme.colors.bg.app,
+  },
+  progressLabel: {
+    fontSize: theme.typography.size.caption,
+    fontWeight: theme.typography.weight.regular,
+    fontFamily: theme.typography.family.sans,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
   },
 }));
