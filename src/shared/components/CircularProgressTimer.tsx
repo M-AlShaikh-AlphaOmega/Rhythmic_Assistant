@@ -1,9 +1,10 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import Svg, { Circle } from 'react-native-svg';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 export type CircularProgressTimerProps = {
-  // Elapsed / total ratio (0–1) — arc fill deferred until react-native-svg is installed.
+  // Elapsed / total ratio (0–1)
   progress: number;
   // Formatted display time, e.g. "04:50"
   timeLabel: string;
@@ -12,21 +13,53 @@ export type CircularProgressTimerProps = {
 
 const RING_SIZE = 200;
 const STROKE = 14;
-const INNER_SIZE = RING_SIZE - STROKE * 2;
+const RADIUS = (RING_SIZE - STROKE) / 2;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-// View-based ring timer: gray/blue track circle with white inner hole and centered time display.
-// TODO: arc progress fill requires react-native-svg (not yet installed).
-//       Once installed, replace the plain View ring with an Svg Arc overlay.
-export const CircularProgressTimer = ({ timeLabel, active }: CircularProgressTimerProps) => (
-  <View style={styles.ring}>
-    <View style={[styles.track, active ? styles.trackActive : styles.trackInactive]}>
-      <View style={styles.inner}>
+// SVG-based ring timer: gray track + colored progress arc with centered time display.
+// The arc starts at the top (12 o'clock) and fills clockwise as progress increases.
+export const CircularProgressTimer = ({
+  progress,
+  timeLabel,
+  active,
+}: CircularProgressTimerProps) => {
+  const { theme } = useUnistyles();
+  const clamped = Math.min(Math.max(progress, 0), 1);
+  const dashOffset = CIRCUMFERENCE * (1 - clamped);
+  const arcColor = active ? theme.colors.accent.info : theme.colors.text.secondary;
+
+  return (
+    <View style={styles.ring}>
+      <Svg width={RING_SIZE} height={RING_SIZE}>
+        <Circle
+          cx={RING_SIZE / 2}
+          cy={RING_SIZE / 2}
+          r={RADIUS}
+          stroke={theme.colors.border.default}
+          strokeWidth={STROKE}
+          fill="none"
+        />
+        <Circle
+          cx={RING_SIZE / 2}
+          cy={RING_SIZE / 2}
+          r={RADIUS}
+          stroke={arcColor}
+          strokeWidth={STROKE}
+          fill="none"
+          strokeDasharray={`${CIRCUMFERENCE} ${CIRCUMFERENCE}`}
+          strokeDashoffset={dashOffset}
+          strokeLinecap="round"
+          // Rotate -90° so the arc starts at the top (12 o'clock) instead of 3 o'clock.
+          transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+        />
+      </Svg>
+      <View style={styles.center} pointerEvents="none">
         <Text style={styles.timer}>{timeLabel}</Text>
         <Text style={styles.remainingLabel}>remaining</Text>
       </View>
     </View>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create(theme => ({
   ring: {
@@ -35,25 +68,8 @@ const styles = StyleSheet.create(theme => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  track: {
-    width: RING_SIZE,
-    height: RING_SIZE,
-    borderRadius: theme.radius.full,
-    borderWidth: STROKE,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  trackActive: {
-    borderColor: theme.colors.accent.info,
-  },
-  trackInactive: {
-    borderColor: theme.colors.border.default,
-  },
-  inner: {
-    width: INNER_SIZE,
-    height: INNER_SIZE,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.bg.surface,
+  center: {
+    position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.spacing.s1,

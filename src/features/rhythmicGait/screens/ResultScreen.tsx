@@ -15,6 +15,7 @@ import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/const
 import {
   getCueById,
   useLastResult,
+  useSessionConfig,
   useSessionStore,
 } from '../store';
 
@@ -25,8 +26,9 @@ type NavProp = NativeStackNavigationProp<RhythmicGaitParamList>;
 export default function ResultScreen() {
   const navigation = useNavigation<NavProp>();
   const result = useLastResult();
+  const config = useSessionConfig();
   const reset = useSessionStore(s => s.reset);
-  const startRunning = useSessionStore(s => s.startRunning);
+  const start = useSessionStore(s => s.start);
 
   // Guard: if there is no result (unexpected landing), return to Home.
   useEffect(() => {
@@ -42,9 +44,13 @@ export default function ResultScreen() {
   }, [reset, navigation]);
 
   const handleWalkAgain = useCallback(() => {
-    startRunning();
-    navigation.navigate(RhythmicGaitRoutes.Running);
-  }, [startRunning, navigation]);
+    start();
+    if (config.countInEnabled) {
+      navigation.navigate(RhythmicGaitRoutes.Countdown);
+    } else {
+      navigation.navigate(RhythmicGaitRoutes.Running);
+    }
+  }, [start, config.countInEnabled, navigation]);
 
   if (result === undefined) return null;
 

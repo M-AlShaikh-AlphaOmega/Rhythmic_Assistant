@@ -21,9 +21,9 @@ import type { CueId, DurationMinutes, PaceId } from '../store';
 
 type NavProp = NativeStackNavigationProp<RhythmicGaitParamList>;
 
-const CUE_ICON: Record<CueId, 'musical-notes' | 'pulse' | 'layers'> = {
+const CUE_ICON: Record<CueId, 'musical-notes' | 'flash' | 'layers'> = {
   audio: 'musical-notes',
-  vibration: 'pulse',
+  vibration: 'flash',
   combined: 'layers',
 };
 
@@ -97,6 +97,7 @@ export default function HomeScreen() {
             description="A short calm countdown before music begins."
             value={config.countInEnabled}
             onValueChange={v => setConfig({ countInEnabled: v })}
+            showDivider
           />
           <ToggleRow
             title="End chime"

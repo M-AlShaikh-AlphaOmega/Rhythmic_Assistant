@@ -32,10 +32,14 @@ export const ListOption = ({
     <Text style={styles.emoji}>{emoji}</Text>
     <View style={styles.center}>
       <View style={styles.titleRow}>
-        <Text style={[styles.title, selected && styles.titleSelected]}>{title}</Text>
+        <Text style={[styles.title, selected && styles.titleSelected]} numberOfLines={1}>
+          {title}
+        </Text>
         <Text style={[styles.bpm, selected && styles.bpmSelected]}>{bpm}</Text>
       </View>
-      <Text style={styles.description}>{description}</Text>
+      <Text style={styles.description} numberOfLines={1}>
+        {description}
+      </Text>
     </View>
     {rightLabel !== undefined && (
       <Text style={[styles.rightLabel, selected && styles.rightLabelSelected]}>{rightLabel}</Text>
@@ -65,7 +69,7 @@ const styles = StyleSheet.create(theme => ({
   },
   center: {
     flex: 1,
-    gap: theme.spacing.s1,
+    gap: theme.spacing.s2,
   },
   titleRow: {
     flexDirection: 'row',
@@ -97,6 +101,8 @@ const styles = StyleSheet.create(theme => ({
     color: theme.colors.text.secondary,
   },
   rightLabel: {
+    width: 100,
+    textAlign: 'right',
     fontSize: theme.typography.size.caption,
     fontWeight: theme.typography.weight.medium,
     fontFamily: theme.typography.family.sans,
