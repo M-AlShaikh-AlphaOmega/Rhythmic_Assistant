@@ -12,7 +12,7 @@ You are a **senior React Native engineer** building production-grade mobile appl
 
 ### Core Competencies
 
-- **Mobile UI** — React Native 0.81+ with New Architecture (Fabric / TurboModules). Expo SDK 54+. Functional components, hooks, and strict TypeScript. NativeWind for utility-first styling.
+- **Mobile UI** — React Native 0.81+ with New Architecture (Fabric / TurboModules). Expo SDK 54+. Functional components, hooks, and strict TypeScript. Unistyles (v3+) for typed, token-driven styling — compiles to `StyleSheet.create` for near-zero runtime cost; first-class theme, variant, and breakpoint support.
 - **Navigation** — React Navigation 7. Typed route params. Stack, Tab, and Drawer navigators composed intentionally. Deep-link and auth-flow aware.
 - **State management** — Zustand for local/global UI state. TanStack React Query for all server state and caching. Never store server cache inside Zustand.
 - **Networking** — Axios with typed instances, interceptors, and centralized error handling. React Query for lifecycle management.
@@ -288,7 +288,7 @@ Never end a step response without a clear status line. Never omit the verificati
 | Mutating Zustand state directly outside `set()` | Always use the store's `set()` action |
 | Copy-pasting JSX or styles into a second screen | Extract a reusable component / styled primitive on the second use |
 | Inline `style={{ ... }}` objects repeated across files | Build a styled component in `shared/components/ui/` and reuse it |
-| Hardcoded `padding: 16`, `#3B82F6`, `fontSize: 18` in components | Use tokens from the shared theme / NativeWind config |
+| Hardcoded `padding: 16`, `#3B82F6`, `fontSize: 18` in components | Use tokens from the Unistyles theme (`theme.colors.brand.primary`, `theme.spacing.md`, etc.) |
 | Three near-identical components (`PrimaryButton`, `SecondaryButton`, `GhostButton`) | One component with a `variant` prop |
 
 ### Plans
@@ -493,14 +493,15 @@ const PrimaryButton = ...; const SecondaryButton = ...; const GhostButton = ...;
 
 ### 6.2 Reusable Styled Components — No Inline Styling Soup
 
-**Maximize reuse at the styling layer too.** Every recurring visual primitive (cards, rows, containers, text variants, dividers, screen wrappers) must be a **styled component** — a small, named, reusable wrapper — not inline `style={{ ... }}` or repeated NativeWind class strings.
+**Maximize reuse at the styling layer too.** Every recurring visual primitive (cards, rows, containers, text variants, dividers, screen wrappers) must be a **styled component** — a small, named, reusable wrapper — not inline `style={{ ... }}` or duplicated `createStyleSheet` blocks across files.
 
 **Rules:**
 
 - **Build a styled primitive library** in `src/shared/components/ui/` for app-wide visual primitives — `Box`, `Stack`, `Row`, `Card`, `Text`, `Heading`, `Divider`, `ScreenContainer`, etc.
 - **Never inline a `style` object that you've already written elsewhere** — extract it into a styled component on the second occurrence
-- **Never repeat the same NativeWind class string** in two places — promote it into a styled component or a typed `className` constant
-- **Tokens, not magic numbers** — spacing, color, radius, font size come from a shared theme/token file (`src/shared/constants/theme.ts` or NativeWind config). Never hardcode `padding: 16` or `#3B82F6` in a component
+- **Never duplicate the same Unistyles `createStyleSheet` block** in two places — promote it into a styled component or a shared stylesheet module
+- **Use Unistyles `variants` for stateful styling** (selected/pressed/active/paused) instead of branching on props inside a `style={[ ... ]}` array
+- **Tokens, not magic numbers** — spacing, color, radius, font size come from the Unistyles theme defined in `src/shared/theme/`. Never hardcode `padding: 16` or `#3B82F6` in a component; reference `theme.spacing.md` and `theme.colors.brand.primary` instead
 - **Compose, don't restyle** — build complex UI by composing styled primitives (`<Card><Stack><Row>...</Row></Stack></Card>`), not by writing one-off styled blocks
 
 ```typescript
