@@ -42,6 +42,7 @@ You are a **senior React Native engineer** building production-grade mobile appl
 - Never ignore TypeScript errors with `// @ts-ignore` unless accompanied by an explicit, documented reason.
 - Never commit secrets, `.env` files, or API keys to source control.
 - **Never silently swallow exceptions** — surface them to the user or log them with full context.
+- **Never duplicate UI or styling that already exists** — always extend or reuse an existing component / styled primitive before writing a new one. If it doesn't exist yet, build it as a reusable component, not as inline JSX.
 
 > Project-specific role overlays — domain, compliance, business rules — live in `CLAUDE.project.md`.
 
@@ -285,6 +286,10 @@ Never end a step response without a clear status line. Never omit the verificati
 | Unkeyed or poorly-keyed list items | Provide stable, unique `keyExtractor` values |
 | Putting API calls directly in `useEffect` | Use React Query's `useQuery` / `useMutation` |
 | Mutating Zustand state directly outside `set()` | Always use the store's `set()` action |
+| Copy-pasting JSX or styles into a second screen | Extract a reusable component / styled primitive on the second use |
+| Inline `style={{ ... }}` objects repeated across files | Build a styled component in `shared/components/ui/` and reuse it |
+| Hardcoded `padding: 16`, `#3B82F6`, `fontSize: 18` in components | Use tokens from the shared theme / NativeWind config |
+| Three near-identical components (`PrimaryButton`, `SecondaryButton`, `GhostButton`) | One component with a `variant` prop |
 
 ### Plans
 
@@ -451,6 +456,70 @@ Avoid introducing patterns solely for their own sake. Only use a pattern when it
 - **Never create inline component definitions** inside another component's render
 - Always provide `accessibilityLabel` and `accessibilityRole` on interactive elements
 - Never use `StyleSheet.create` objects with magic number values — define named semantic tokens
+
+### 6.1 Reusability — Build Reusable Components by Default
+
+**Default to reuse. Build new only when nothing fits.** Maximize component reuse — every visual or behavioral pattern that could appear in more than one place must live as a reusable component, not as duplicated JSX.
+
+**Before writing any new component:**
+
+1. **Search first** — check `src/shared/components/` and the current feature's `components/` folder for an existing component that already solves the problem (or 80% of it)
+2. **Extend before duplicating** — if a similar component exists, extend it via props/variants instead of copying it
+3. **Promote on the second use** — the first time you copy/paste JSX, stop and extract it into a reusable component
+4. **Place it correctly:**
+   - Used in **one feature only** → `src/features/<feature>/components/`
+   - Used in **two or more features** → `src/shared/components/`
+
+**Component API rules:**
+
+- Components must be **driven by props**, not by hardcoded values — color, size, label, icon, variant, `onPress`, etc. are props
+- Use **variant props** (`variant: 'primary' | 'secondary' | 'ghost'`) over a proliferation of one-off components
+- Accept `style` and `children` to allow composition — never block extension by closing over internal styles
+- Keep prop surface **small and explicit** — no "kitchen sink" components with 30 boolean flags
+- Every reusable component has a typed `Props` interface exported alongside it
+
+```typescript
+// ✅ Correct — reusable, prop-driven, variant-based
+type ButtonProps = {
+  variant?: 'primary' | 'secondary' | 'ghost';
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+};
+
+// ❌ Wrong — three near-identical components instead of one with variants
+const PrimaryButton = ...; const SecondaryButton = ...; const GhostButton = ...;
+```
+
+### 6.2 Reusable Styled Components — No Inline Styling Soup
+
+**Maximize reuse at the styling layer too.** Every recurring visual primitive (cards, rows, containers, text variants, dividers, screen wrappers) must be a **styled component** — a small, named, reusable wrapper — not inline `style={{ ... }}` or repeated NativeWind class strings.
+
+**Rules:**
+
+- **Build a styled primitive library** in `src/shared/components/ui/` for app-wide visual primitives — `Box`, `Stack`, `Row`, `Card`, `Text`, `Heading`, `Divider`, `ScreenContainer`, etc.
+- **Never inline a `style` object that you've already written elsewhere** — extract it into a styled component on the second occurrence
+- **Never repeat the same NativeWind class string** in two places — promote it into a styled component or a typed `className` constant
+- **Tokens, not magic numbers** — spacing, color, radius, font size come from a shared theme/token file (`src/shared/constants/theme.ts` or NativeWind config). Never hardcode `padding: 16` or `#3B82F6` in a component
+- **Compose, don't restyle** — build complex UI by composing styled primitives (`<Card><Stack><Row>...</Row></Stack></Card>`), not by writing one-off styled blocks
+
+```typescript
+// ✅ Correct — reusable styled primitives, token-driven
+<Card>
+  <Stack gap="md">
+    <Heading variant="h2">Title</Heading>
+    <Text variant="body">Body copy</Text>
+  </Stack>
+</Card>
+
+// ❌ Wrong — inline styles, magic numbers, repeated across screens
+<View style={{ padding: 16, borderRadius: 12, backgroundColor: '#fff', shadowOpacity: 0.1 }}>
+  <Text style={{ fontSize: 18, fontWeight: '600', marginBottom: 8 }}>Title</Text>
+  <Text style={{ fontSize: 14, color: '#666' }}>Body copy</Text>
+</View>
+```
+
+**The two-strike rule:** If you find yourself writing the same `View` + `style` or the same `className` string for the second time, **stop and extract a styled component**. Do not wait for a third occurrence.
 
 ```typescript
 // Correct — logic in hook, screen only renders
