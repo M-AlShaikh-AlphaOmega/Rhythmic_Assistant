@@ -54,7 +54,7 @@ const styles = StyleSheet.create(theme => ({
   title: {
     fontSize: theme.typography.size.title,
     fontWeight: theme.typography.weight.semibold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.semibold,
     color: theme.colors.text.primary,
     textAlign: 'center',
   },
@@ -64,7 +64,7 @@ const styles = StyleSheet.create(theme => ({
   description: {
     fontSize: theme.typography.size.caption,
     fontWeight: theme.typography.weight.regular,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.regular,
     color: theme.colors.text.secondary,
     textAlign: 'center',
   },

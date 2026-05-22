@@ -84,14 +84,14 @@ const styles = StyleSheet.create(theme => ({
   timer: {
     fontSize: theme.typography.size.displayLarge,
     fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.bold,
     color: theme.colors.text.primary,
     lineHeight: theme.typography.size.displayLarge * theme.typography.lineHeight.tight,
   },
   remainingLabel: {
     fontSize: theme.typography.size.caption,
     fontWeight: theme.typography.weight.regular,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.regular,
     color: theme.colors.text.secondary,
   },
 }));

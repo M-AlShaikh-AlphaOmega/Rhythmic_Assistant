@@ -147,13 +147,13 @@ const styles = StyleSheet.create(theme => ({
   heroTitle: {
     fontSize: theme.typography.size.h2,
     fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.bold,
     color: theme.colors.text.primary,
   },
   heroSubtitle: {
     fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.regular,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.regular,
     color: theme.colors.text.secondary,
   },
   moodRow: {
@@ -182,7 +182,7 @@ const styles = StyleSheet.create(theme => ({
   moodLabel: {
     fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.medium,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.medium,
     color: theme.colors.text.primary,
   },
   buttonRow: {

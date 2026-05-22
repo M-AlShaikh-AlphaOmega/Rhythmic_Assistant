@@ -59,7 +59,7 @@ const styles = StyleSheet.create(theme => ({
   digit: {
     fontSize: theme.typography.size.display,
     fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.bold,
     color: theme.colors.rose.base,
     lineHeight: theme.typography.size.display * theme.typography.lineHeight.tight,
   },

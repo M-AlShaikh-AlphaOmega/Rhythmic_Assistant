@@ -30,7 +30,7 @@ const styles = StyleSheet.create(theme => ({
   title: {
     fontSize: theme.typography.size.h3,
     fontWeight: theme.typography.weight.semibold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.semibold,
     color: theme.colors.text.primary,
   },
 }));

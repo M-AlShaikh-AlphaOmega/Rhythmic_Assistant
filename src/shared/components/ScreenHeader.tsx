@@ -59,7 +59,7 @@ const styles = StyleSheet.create(theme => ({
     fontSize: theme.typography.size.h1,
     fontWeight: theme.typography.weight.semibold,
     color: theme.colors.text.primary,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.semibold,
   },
   spacer: {
     width: BACK_HIT_SIZE,

@@ -64,13 +64,13 @@ const styles = StyleSheet.create(theme => ({
   label: {
     fontSize: theme.typography.size.caption,
     fontWeight: theme.typography.weight.medium,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.medium,
     color: theme.colors.text.primary,
   },
   bpm: {
     fontSize: theme.typography.size.caption,
     fontWeight: theme.typography.weight.regular,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.regular,
     color: theme.colors.text.secondary,
   },
 }));

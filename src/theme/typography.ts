@@ -1,6 +1,9 @@
 // Typography tokens — every text element in the app references these.
 // Line heights are multipliers; compute absolute value as: fontSize * lineHeight.X
-// Font family assumption: Inter (§14, assumption #1 — verify against Figma source).
+// Font family: Plus Jakarta Sans, loaded at app startup via expo-font /
+// @expo-google-fonts/plus-jakarta-sans. Per-weight family names are required because
+// React Native cannot reliably resolve `fontFamily + fontWeight` to a custom-loaded
+// Google Font weight on Android.
 
 // Standard scale — the default visual density.
 const sizeRegular = {
@@ -49,10 +52,19 @@ type SizeScale = {
   readonly displayLarge: number;
 };
 
+// Plus Jakarta Sans family names, one per loaded weight.
+// These strings must match the asset names registered by @expo-google-fonts/plus-jakarta-sans.
+const family = {
+  regular: 'PlusJakartaSans_400Regular',
+  medium: 'PlusJakartaSans_500Medium',
+  semibold: 'PlusJakartaSans_600SemiBold',
+  bold: 'PlusJakartaSans_700Bold',
+} as const;
+
 // Builds a typography token set for the given size scale.
 // Family, weights, line heights, and letter spacing are scale-invariant.
 const buildTypography = (size: SizeScale) => ({
-  family: { sans: 'Inter' },
+  family,
   weight: {
     regular: '400' as const,
     medium: '500' as const,

@@ -6,7 +6,8 @@
       "Bash(npx tsc *)",
       "Bash(echo \"EXIT=$?\")",
       "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\('deps:',Object.keys\\(p.dependencies\\).length,Object.keys\\(p.dependencies\\)\\)\")",
-      "Bash(node -e \"const a=require\\('./app.json'\\);console.log\\('plugins:',a.expo.plugins,'android.package:',a.expo.android.package\\)\")"
+      "Bash(node -e \"const a=require\\('./app.json'\\);console.log\\('plugins:',a.expo.plugins,'android.package:',a.expo.android.package\\)\")",
+      "Bash(npx expo *)"
     ]
   }
 }

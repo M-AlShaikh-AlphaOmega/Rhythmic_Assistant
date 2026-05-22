@@ -4,6 +4,8 @@ export { BigActionButton } from './BigActionButton';
 export type { BigActionButtonProps, BigActionButtonVariant } from './BigActionButton';
 export { HoldToConfirmButton } from './HoldToConfirmButton';
 export type { HoldToConfirmButtonProps } from './HoldToConfirmButton';
+export { SupportActionCard } from './SupportActionCard';
+export type { SupportActionCardProps } from './SupportActionCard';
 export { SectionCard } from './SectionCard';
 export type { SectionCardProps } from './SectionCard';
 export { ScreenHeader } from './ScreenHeader';

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Rhythmic_Assistant",
-    "slug": "Rhythmic_Assistant",
+    "name": "aCare Home",
+    "slug": "aCare Home",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/brand-badge-icon.png",
@@ -28,6 +28,9 @@
     },
     "web": {
       "favicon": "./assets/brand-badge-icon.png"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

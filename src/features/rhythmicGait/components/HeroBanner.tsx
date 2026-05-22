@@ -33,14 +33,14 @@ const styles = StyleSheet.create(theme => ({
   headline: {
     fontSize: theme.typography.size.h2,
     fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.bold,
     color: theme.colors.text.inverse,
     lineHeight: theme.typography.size.h2 * theme.typography.lineHeight.normal,
   },
   subtitle: {
     fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.regular,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.regular,
     color: 'rgba(255,255,255,0.85)',
     lineHeight: theme.typography.size.body * theme.typography.lineHeight.relaxed,
   },

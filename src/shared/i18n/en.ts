@@ -3,6 +3,7 @@
 export const en = {
   // Home screen — simplified to two big buttons + Settings link.
   'home.title': 'Rhythmic Gait Assistant',
+  'home.tagline': 'Walk with the rhythm',
   'home.startWalk.label': 'Start walk',
   'home.startWalk.sub': 'Begin with your usual settings',
   'home.rescue.label': 'Help me start',

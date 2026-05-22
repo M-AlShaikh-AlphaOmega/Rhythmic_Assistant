@@ -61,7 +61,7 @@ const styles = StyleSheet.create(theme => ({
   label: {
     fontSize: theme.typography.size.bodyEmphasized,
     fontWeight: theme.typography.weight.semibold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.semibold,
   },
   labelDefault: {
     color: theme.colors.text.primary,

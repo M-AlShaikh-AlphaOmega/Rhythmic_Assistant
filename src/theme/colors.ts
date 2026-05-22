@@ -1,8 +1,8 @@
 // Raw primitive palette — every hex value in the app originates here.
 // No component ever references the palette directly; use semantic tokens below.
 const palette = {
-  red700: '#9A0F32',
-  red600: '#B5183C',
+  red700: '#8B1529',
+  red600: '#A41E37',
   blue600: '#2563EB',
   blue500: '#5B8DEF',
   blue200: '#BFD3FF',

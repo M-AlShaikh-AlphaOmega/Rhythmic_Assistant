@@ -32,13 +32,13 @@ const styles = StyleSheet.create(theme => ({
   label: {
     fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.regular,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.regular,
     color: theme.colors.text.secondary,
   },
   value: {
     fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.semibold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.semibold,
     color: theme.colors.text.primary,
   },
   divider: {

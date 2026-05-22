@@ -127,14 +127,14 @@ const styles = StyleSheet.create(theme => ({
   title: {
     fontSize: theme.typography.size.h2,
     fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.bold,
     color: theme.colors.text.primary,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.regular,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.regular,
     color: theme.colors.text.secondary,
     textAlign: 'center',
   },
@@ -145,7 +145,7 @@ const styles = StyleSheet.create(theme => ({
   timer: {
     fontSize: 96,
     fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.bold,
     color: theme.colors.text.primary,
     letterSpacing: -2,
   },
@@ -158,7 +158,7 @@ const styles = StyleSheet.create(theme => ({
   percentLabel: {
     fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.semibold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.semibold,
     color: theme.colors.text.secondary,
     textAlign: 'center',
   },

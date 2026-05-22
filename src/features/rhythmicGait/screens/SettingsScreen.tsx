@@ -151,7 +151,7 @@ export default function SettingsScreen() {
                 borderColor: theme.colors.border.default,
                 color: theme.colors.text.primary,
                 backgroundColor: theme.colors.bg.surface,
-                fontFamily: theme.typography.family.sans,
+                fontFamily: theme.typography.family.regular,
                 fontSize: theme.typography.size.body,
               },
             ]}

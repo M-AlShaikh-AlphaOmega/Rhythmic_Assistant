@@ -91,7 +91,7 @@ const styles = StyleSheet.create(theme => ({
   label: {
     fontSize: 32,
     fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.bold,
     textAlign: 'center',
   },
   labelPrimary: {
@@ -103,7 +103,7 @@ const styles = StyleSheet.create(theme => ({
   subLabel: {
     fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.medium,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.medium,
     textAlign: 'center',
   },
   subLabelPrimary: {

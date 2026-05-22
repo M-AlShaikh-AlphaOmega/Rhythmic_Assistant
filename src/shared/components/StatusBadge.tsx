@@ -50,7 +50,7 @@ const styles = StyleSheet.create(theme => ({
   label: {
     fontSize: theme.typography.size.caption,
     fontWeight: theme.typography.weight.semibold,
-    fontFamily: theme.typography.family.sans,
+    fontFamily: theme.typography.family.semibold,
   },
   activeLabel: {
     color: theme.colors.accent.info,
