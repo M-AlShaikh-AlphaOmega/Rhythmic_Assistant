@@ -3,10 +3,9 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
-import { BigActionButton } from '../../../shared/components';
+import { BigActionButton, ScreenHeader } from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
 import { t } from '../../../shared/i18n';
 import { useSessionRouteGuard } from '../navigation/useSessionRouteGuard';
@@ -20,7 +19,6 @@ type NavProp = NativeStackNavigationProp<RhythmicGaitParamList>;
 // Rescue is a rare-use path so it's intentionally de-emphasized; Settings is even rarer.
 export default function HomeScreen() {
   const navigation = useNavigation<NavProp>();
-  const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const config = useSessionConfig();
   const start = useSessionStore(s => s.start);
@@ -47,58 +45,51 @@ export default function HomeScreen() {
   }, [navigation]);
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 },
-      ]}
-    >
-      <View style={styles.header}>
-        <Text style={styles.appName}>{t('home.title')}</Text>
-        <Text style={styles.tagline}>{t('home.tagline')}</Text>
-        <View style={styles.accentLine} />
-      </View>
+    <View style={styles.container}>
+      <ScreenHeader title={t('home.title')} onBack={() => undefined} />
 
-      <View style={styles.settingsRow}>
-        <View style={styles.setupPill}>
-          <Ionicons name="musical-notes-outline" size={16} color={theme.colors.accent.info} />
-          <Text style={styles.setupText} numberOfLines={1}>
-            {cue.label} | {pace.label} | {config.durationMinutes} min
-          </Text>
+      <View style={styles.content}>
+        <View style={styles.settingsRow}>
+          <View style={styles.setupPill}>
+            <Ionicons name="musical-notes-outline" size={16} color={theme.colors.accent.info} />
+            <Text style={styles.setupText} numberOfLines={1}>
+              {cue.label} | {pace.label} | {config.durationMinutes} min
+            </Text>
+          </View>
+          <Pressable
+            onPress={handleSettings}
+            accessibilityRole="button"
+            accessibilityLabel={t('home.settings')}
+            hitSlop={12}
+            style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
+            testID="home-settings"
+          >
+            <Ionicons name="settings-outline" size={23} color={theme.colors.text.primary} />
+          </Pressable>
         </View>
+
+        <View style={styles.hero}>
+          <BigActionButton
+            variant="primary"
+            label={t('home.startWalk.label')}
+            subLabel={t('home.startWalk.sub')}
+            onPress={handleStart}
+            testID="home-start-walk"
+          />
+        </View>
+
         <Pressable
-          onPress={handleSettings}
+          onPress={handleRescue}
           accessibilityRole="button"
-          accessibilityLabel={t('home.settings')}
+          accessibilityLabel={t('home.rescue.label')}
+          accessibilityHint="Starts a strong vibration to help you start walking"
           hitSlop={12}
-          style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
-          testID="home-settings"
+          style={({ pressed }) => [styles.rescueLink, pressed && styles.rescueLinkPressed]}
+          testID="home-rescue"
         >
-          <Ionicons name="settings-outline" size={23} color={theme.colors.text.primary} />
+          <Text style={styles.rescueLinkText}>{t('home.rescue.label')}</Text>
         </Pressable>
       </View>
-
-      <View style={styles.hero}>
-        <BigActionButton
-          variant="primary"
-          label={t('home.startWalk.label')}
-          subLabel={t('home.startWalk.sub')}
-          onPress={handleStart}
-          testID="home-start-walk"
-        />
-      </View>
-
-      <Pressable
-        onPress={handleRescue}
-        accessibilityRole="button"
-        accessibilityLabel={t('home.rescue.label')}
-        accessibilityHint="Starts a strong vibration to help you start walking"
-        hitSlop={12}
-        style={({ pressed }) => [styles.rescueLink, pressed && styles.rescueLinkPressed]}
-        testID="home-rescue"
-      >
-        <Text style={styles.rescueLinkText}>{t('home.rescue.label')}</Text>
-      </Pressable>
     </View>
   );
 }
@@ -107,7 +98,12 @@ const styles = StyleSheet.create(theme => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.bg.app,
+  },
+  content: {
+    flex: 1,
     paddingHorizontal: theme.spacing.s5,
+    paddingTop: theme.spacing.s2,
+    paddingBottom: theme.spacing.s4,
     gap: theme.spacing.s4,
   },
   settingsRow: {
@@ -145,34 +141,6 @@ const styles = StyleSheet.create(theme => ({
   },
   iconButtonPressed: {
     backgroundColor: theme.colors.border.subtle,
-  },
-  header: {
-    alignItems: 'center',
-    gap: theme.spacing.s2,
-    paddingTop: theme.spacing.s4,
-    paddingBottom: theme.spacing.s2,
-  },
-  appName: {
-    fontSize: theme.typography.size.h2,
-    fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.bold,
-    color: theme.colors.text.primary,
-    textAlign: 'center',
-    letterSpacing: -0.3,
-  },
-  tagline: {
-    fontSize: theme.typography.size.body,
-    fontWeight: theme.typography.weight.medium,
-    fontFamily: theme.typography.family.medium,
-    color: theme.colors.text.secondary,
-    textAlign: 'center',
-  },
-  accentLine: {
-    width: 56,
-    height: 3,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.brand.primary,
-    marginTop: theme.spacing.s2,
   },
   hero: {
     flex: 1,

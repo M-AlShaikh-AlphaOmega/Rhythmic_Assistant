@@ -51,7 +51,7 @@ export const en = {
   'running.pause': 'Pause',
   'running.resume': 'Resume',
   'running.end': 'End walk',
-  'running.endHint': 'Hold for 2 seconds',
+  'running.endHint': 'Hold for 1 second',
 
   // Result screen mood marker.
   'result.title': 'Nice walk.',

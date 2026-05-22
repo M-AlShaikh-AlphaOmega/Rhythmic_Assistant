@@ -9,7 +9,7 @@ const BACK_HIT_SIZE = 44;
 
 type ScreenHeaderProps = {
   title: string;
-  onBack: () => void;
+  onBack?: () => void;
 };
 
 // Shared header used on all 5 screens: back chevron left, centered title, safe-area aware.
@@ -19,15 +19,19 @@ export const ScreenHeader = ({ title, onBack }: ScreenHeaderProps) => {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={onBack}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        accessibilityLabel="Go back"
-        accessibilityRole="button"
-      >
-        <Ionicons name="chevron-back" size={22} color={theme.colors.text.primary} />
-      </TouchableOpacity>
+      {onBack !== undefined ? (
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={onBack}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
+          <Ionicons name="chevron-back" size={22} color={theme.colors.brand.onPrimary} />
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.spacer} />
+      )}
 
       <Text style={styles.title} numberOfLines={1}>
         {title}
@@ -45,9 +49,7 @@ const styles = StyleSheet.create(theme => ({
     alignItems: 'center',
     paddingHorizontal: theme.spacing.s4,
     paddingBottom: theme.spacing.s3,
-    backgroundColor: theme.colors.bg.app,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border.subtle,
+    backgroundColor: theme.colors.brand.primary,
   },
   backButton: {
     width: BACK_HIT_SIZE,
@@ -58,12 +60,13 @@ const styles = StyleSheet.create(theme => ({
   title: {
     flex: 1,
     textAlign: 'center',
-    fontSize: theme.typography.size.h3,
+    fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.semibold,
-    color: theme.colors.text.primary,
+    color: theme.colors.brand.onPrimary,
     fontFamily: theme.typography.family.semibold,
   },
   spacer: {
     width: BACK_HIT_SIZE,
+    height: BACK_HIT_SIZE,
   },
 }));

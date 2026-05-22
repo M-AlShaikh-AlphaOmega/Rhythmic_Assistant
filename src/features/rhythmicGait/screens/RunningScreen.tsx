@@ -92,7 +92,7 @@ export default function RunningScreen() {
         <HoldToConfirmButton
           label={t('running.end')}
           hint={t('running.endHint')}
-          holdDurationMs={2000}
+          holdDurationMs={1000}
           onConfirm={handleEnd}
           testID="running-end"
         />

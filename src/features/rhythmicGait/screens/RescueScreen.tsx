@@ -10,6 +10,7 @@ import {
   AudioVisualizer,
   Button,
   CircularProgressTimer,
+  ScreenHeader,
 } from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
 import { t } from '../../../shared/i18n';
@@ -79,42 +80,35 @@ export default function RescueScreen() {
   }, [phase, stop, reset, navigation]);
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 16 },
-      ]}
-    >
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('rescue.title')}</Text>
-        <Text style={styles.subtitle}>{t('rescue.subtitle')}</Text>
-      </View>
+    <View style={styles.container}>
+      <ScreenHeader title={t('rescue.title')} onBack={handleExit} />
+      <View style={[styles.content, { paddingBottom: insets.bottom + 16 }]}>
+        <View style={styles.timerBlock}>
+          <CircularProgressTimer
+            progress={progress}
+            timeLabel={formatTime(remaining)}
+            active={!isPaused}
+            statusLabel={isPaused ? 'Paused' : 'Strong cue'}
+          />
+          <AudioVisualizer active={!isPaused} />
+        </View>
 
-      <View style={styles.timerBlock}>
-        <CircularProgressTimer
-          progress={progress}
-          timeLabel={formatTime(remaining)}
-          active={!isPaused}
-          statusLabel={isPaused ? 'Paused' : 'Strong cue'}
-        />
-        <AudioVisualizer active={!isPaused} />
-      </View>
-
-      <View style={styles.actions}>
-        <Text style={styles.percentLabel}>{Math.round(progress * 100)}% complete</Text>
-        <Button
-          variant="primary"
-          label={isPaused ? t('rescue.resume') : t('rescue.pause')}
-          onPress={isPaused ? resume : pause}
-          fullWidth
-          testID="rescue-pause"
-        />
-        <Button
-          variant="secondary"
-          label={t('rescue.exit')}
-          onPress={handleExit}
-          fullWidth
-        />
+        <View style={styles.actions}>
+          <Text style={styles.percentLabel}>{Math.round(progress * 100)}% complete</Text>
+          <Button
+            variant="primary"
+            label={isPaused ? t('rescue.resume') : t('rescue.pause')}
+            onPress={isPaused ? resume : pause}
+            fullWidth
+            testID="rescue-pause"
+          />
+          <Button
+            variant="secondary"
+            label={t('rescue.exit')}
+            onPress={handleExit}
+            fullWidth
+          />
+        </View>
       </View>
     </View>
   );
@@ -124,26 +118,12 @@ const styles = StyleSheet.create(theme => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.bg.app,
+  },
+  content: {
+    flex: 1,
     paddingHorizontal: theme.spacing.s5,
     justifyContent: 'space-between',
-  },
-  header: {
-    alignItems: 'center',
-    gap: theme.spacing.s2,
-  },
-  title: {
-    fontSize: theme.typography.size.h2,
-    fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.bold,
-    color: theme.colors.text.primary,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: theme.typography.size.body,
-    fontWeight: theme.typography.weight.regular,
-    fontFamily: theme.typography.family.regular,
-    color: theme.colors.text.secondary,
-    textAlign: 'center',
+    paddingTop: theme.spacing.s6,
   },
   timerBlock: {
     alignItems: 'center',
