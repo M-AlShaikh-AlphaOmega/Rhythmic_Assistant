@@ -35,6 +35,7 @@ export const BigActionButton = ({
     style={({ pressed }) => [
       styles.base,
       variant === 'primary' ? styles.primary : styles.rescue,
+      variant === 'rescue' && styles.rescueBase,
       pressed && variant === 'primary' && styles.primaryPressed,
       pressed && variant === 'rescue' && styles.rescuePressed,
     ]}
@@ -70,6 +71,9 @@ const styles = StyleSheet.create(theme => ({
     alignItems: 'center',
     ...theme.shadows.md,
   },
+  rescueBase: {
+    minHeight: 184,
+  },
   primary: {
     backgroundColor: theme.colors.brand.primary,
   },
@@ -78,14 +82,16 @@ const styles = StyleSheet.create(theme => ({
   },
   rescue: {
     backgroundColor: theme.colors.brand.primarySurface,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: theme.colors.brand.primary,
   },
   rescuePressed: {
     opacity: 0.85,
   },
   content: {
+    width: '100%',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: theme.spacing.s2,
   },
   label: {

@@ -88,14 +88,17 @@ export default function HomeScreen() {
         />
       </View>
 
-      <BigActionButton
-        variant="rescue"
-        label={t('home.rescue.label')}
-        subLabel={t('home.rescue.sub')}
+      <Pressable
         onPress={handleRescue}
+        accessibilityRole="button"
+        accessibilityLabel={t('home.rescue.label')}
         accessibilityHint="Starts a strong vibration to help you start walking"
+        hitSlop={12}
+        style={({ pressed }) => [styles.rescueLink, pressed && styles.rescueLinkPressed]}
         testID="home-rescue"
-      />
+      >
+        <Text style={styles.rescueLinkText}>{t('home.rescue.label')}</Text>
+      </Pressable>
     </View>
   );
 }
@@ -174,5 +177,22 @@ const styles = StyleSheet.create(theme => ({
   hero: {
     flex: 1,
     justifyContent: 'center',
+  },
+  rescueLink: {
+    alignSelf: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: theme.spacing.s3,
+  },
+  rescueLinkPressed: {
+    opacity: 0.65,
+  },
+  rescueLinkText: {
+    fontSize: theme.typography.size.body,
+    fontWeight: theme.typography.weight.semibold,
+    fontFamily: theme.typography.family.semibold,
+    color: theme.colors.brand.primary,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
   },
 }));
