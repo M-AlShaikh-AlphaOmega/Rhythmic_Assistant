@@ -1,31 +1,50 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useCallback } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import React, { useCallback, useMemo } from 'react';
+import { ScrollView, View } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 
-import { BigActionButton, ScreenHeader } from '../../../shared/components';
+import { InfoNoticeRow, ScreenHeader } from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
 import { t } from '../../../shared/i18n';
+import { HomeGreeting } from '../components/HomeGreeting';
+import { HomeQuickActionsRow } from '../components/HomeQuickActionsRow';
+import { StartWalkHero } from '../components/StartWalkHero';
+import { StreakCard } from '../components/StreakCard';
+import { TodaysPlanCard } from '../components/TodaysPlanCard';
 import { useSessionRouteGuard } from '../navigation/useSessionRouteGuard';
 import { getCueById, getPaceById, useSessionConfig, useSessionStore } from '../store';
 
+import type { WeekBarState } from '../../../shared/components';
+
 type NavProp = NativeStackNavigationProp<RhythmicGaitParamList>;
 
+// Static placeholder bars for the streak card — wired to real history later.
+const STREAK_BARS: WeekBarState[] = ['full', 'full', 'full', 'partial', 'empty', 'empty', 'empty'];
+
+// Time-bucketed greeting; defaults to morning.
+const greetingForHour = (hour: number): string => {
+  if (hour < 12) return t('home.greeting.morning');
+  if (hour < 18) return t('home.greeting.afternoon');
+  return t('home.greeting.evening');
+};
+
 // Home screen — the feature's entry surface inside the wider aCare app.
-// Title block, one dominant "Start walk" button, and two quiet text-link
-// affordances: "Help me start" (rescue) and the gear icon for Settings.
-// Rescue is a rare-use path so it's intentionally de-emphasized; Settings is even rarer.
+// Composes: greeting header band, Today's plan card, streak card, Start-walk
+// hero, info notice, and three bottom quick-action tiles.
 export default function HomeScreen() {
   const navigation = useNavigation<NavProp>();
-  const { theme } = useUnistyles();
   const config = useSessionConfig();
   const start = useSessionStore(s => s.start);
   const pace = getPaceById(config.paceId);
   const cue = getCueById(config.cue);
 
   useSessionRouteGuard();
+
+  const greeting = useMemo(() => {
+    const name = t('home.greeting.userPlaceholder');
+    return `${greetingForHour(new Date().getHours())}, ${name}`;
+  }, []);
 
   const handleStart = useCallback(() => {
     start();
@@ -44,52 +63,48 @@ export default function HomeScreen() {
     navigation.navigate(RhythmicGaitRoutes.Settings);
   }, [navigation]);
 
+  const durationLabel = `${config.durationMinutes} min`;
+  const paceValue = `${pace.bpm} BPM`;
+
   return (
     <View style={styles.container}>
-      <ScreenHeader title={t('home.title')} onBack={() => undefined} />
+      <ScreenHeader
+        title={t('home.title')}
+        bottomSlot={<HomeGreeting greeting={greeting} question={t('home.greeting.question')} />}
+      />
 
-      <View style={styles.content}>
-        <View style={styles.settingsRow}>
-          <View style={styles.setupPill}>
-            <Ionicons name="musical-notes-outline" size={16} color={theme.colors.accent.info} />
-            <Text style={styles.setupText} numberOfLines={1}>
-              {cue.label} | {pace.label} | {config.durationMinutes} min
-            </Text>
-          </View>
-          <Pressable
-            onPress={handleSettings}
-            accessibilityRole="button"
-            accessibilityLabel={t('home.settings')}
-            hitSlop={12}
-            style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
-            testID="home-settings"
-          >
-            <Ionicons name="settings-outline" size={23} color={theme.colors.text.primary} />
-          </Pressable>
-        </View>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        <TodaysPlanCard
+          cueValue={cue.label}
+          paceValue={paceValue}
+          durationValue={durationLabel}
+          onAdjust={handleSettings}
+        />
 
-        <View style={styles.hero}>
-          <BigActionButton
-            variant="primary"
-            label={t('home.startWalk.label')}
-            subLabel={t('home.startWalk.sub')}
-            onPress={handleStart}
-            testID="home-start-walk"
-          />
-        </View>
+        <StreakCard
+          title={t('home.streak.title')}
+          subtitle={t('home.streak.subtitle')}
+          bars={STREAK_BARS}
+        />
 
-        <Pressable
-          onPress={handleRescue}
-          accessibilityRole="button"
-          accessibilityLabel={t('home.rescue.label')}
-          accessibilityHint="Starts a strong vibration to help you start walking"
-          hitSlop={12}
-          style={({ pressed }) => [styles.rescueLink, pressed && styles.rescueLinkPressed]}
-          testID="home-rescue"
-        >
-          <Text style={styles.rescueLinkText}>{t('home.rescue.label')}</Text>
-        </Pressable>
-      </View>
+        <StartWalkHero
+          onPress={handleStart}
+          durationLabel={durationLabel}
+          tempoLabel={t('home.start.footer.tempo')}
+          modeLabel={t('home.start.footer.safe')}
+          testID="home-start-walk"
+        />
+
+        <InfoNoticeRow message={t('home.notice.phoneInPocket')} />
+
+        <HomeQuickActionsRow
+          onHelpMeStart={handleRescue}
+          onSettings={handleSettings}
+        />
+      </ScrollView>
     </View>
   );
 }
@@ -99,68 +114,10 @@ const styles = StyleSheet.create(theme => ({
     flex: 1,
     backgroundColor: theme.colors.bg.app,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: theme.spacing.s5,
-    paddingTop: theme.spacing.s2,
-    paddingBottom: theme.spacing.s4,
-    gap: theme.spacing.s4,
-  },
-  settingsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    minHeight: 44,
+  scroll: {
+    paddingHorizontal: theme.spacing.s4,
+    paddingTop: theme.spacing.s4,
+    paddingBottom: theme.spacing.s6,
     gap: theme.spacing.s3,
-  },
-  setupPill: {
-    flex: 1,
-    minHeight: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.s2,
-    paddingHorizontal: theme.spacing.s3,
-    borderRadius: theme.radius.full,
-    backgroundColor: theme.colors.accent.infoSurface,
-    borderWidth: 1,
-    borderColor: theme.colors.accent.infoBorder,
-  },
-  setupText: {
-    flex: 1,
-    fontSize: theme.typography.size.caption,
-    fontWeight: theme.typography.weight.semibold,
-    fontFamily: theme.typography.family.semibold,
-    color: theme.colors.text.primary,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: theme.radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconButtonPressed: {
-    backgroundColor: theme.colors.border.subtle,
-  },
-  hero: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  rescueLink: {
-    alignSelf: 'center',
-    minHeight: 44,
-    justifyContent: 'center',
-    paddingHorizontal: theme.spacing.s3,
-  },
-  rescueLinkPressed: {
-    opacity: 0.65,
-  },
-  rescueLinkText: {
-    fontSize: theme.typography.size.body,
-    fontWeight: theme.typography.weight.semibold,
-    fontFamily: theme.typography.family.semibold,
-    color: theme.colors.brand.primary,
-    textAlign: 'center',
-    textDecorationLine: 'underline',
   },
 }));
