@@ -1,13 +1,21 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { StyleSheet } from 'react-native-unistyles';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
-import { Button, ScreenHeader, SectionCard, StatRow } from '../../../shared/components';
+import {
+  Button,
+  Pill,
+  ScreenHeader,
+  SectionCard,
+  SummaryRow,
+} from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
-import { getAnalytics } from '../../../shared/services/analytics';
 import { t } from '../../../shared/i18n';
+import { getAnalytics } from '../../../shared/services/analytics';
+import { emojis } from '../../../theme/icons';
 import {
   getCueById,
   getPaceById,
@@ -19,15 +27,20 @@ import type { MoodMarker } from '../store';
 
 type NavProp = NativeStackNavigationProp<RhythmicGaitParamList>;
 
-const MOOD_CHOICES: { value: MoodMarker; emoji: string; labelKey: 'result.mood.good' | 'result.mood.same' | 'result.mood.hard' }[] = [
+const MOOD_CHOICES: ReadonlyArray<{
+  value: MoodMarker;
+  emoji: string;
+  labelKey: 'result.mood.good' | 'result.mood.same' | 'result.mood.hard';
+}> = [
   { value: 'good', emoji: '🙂', labelKey: 'result.mood.good' },
   { value: 'same', emoji: '😐', labelKey: 'result.mood.same' },
   { value: 'hard', emoji: '🙁', labelKey: 'result.mood.hard' },
 ];
 
 // Session result screen — gentle close to a walk.
-// Shows a small stat readout and the mood marker. Mood is captured in one tap
-// and stored as a preference; it is intentionally never displayed back as a score.
+// The user picks a mood (optional) and either dismisses (Done) or starts another
+// walk (Walk again). Mood is committed to preferences on confirm, not on tap,
+// so accidental presses do not overwrite the most recent intentional mood.
 export default function ResultScreen() {
   const navigation = useNavigation<NavProp>();
   const result = useLastResult();
@@ -35,6 +48,7 @@ export default function ResultScreen() {
   const reset = useSessionStore(s => s.reset);
   const setPreferences = useSessionStore(s => s.setPreferences);
   const start = useSessionStore(s => s.start);
+  const [selectedMood, setSelectedMood] = useState<MoodMarker | undefined>(undefined);
 
   // Guard: if there is no result (unexpected landing), return to Home.
   useEffect(() => {
@@ -44,24 +58,23 @@ export default function ResultScreen() {
     }
   }, [result, reset, navigation]);
 
+  const commitMood = useCallback(() => {
+    if (selectedMood !== undefined) {
+      setPreferences({ lastMood: selectedMood });
+      getAnalytics().track('mood_marked', { mood: selectedMood });
+    }
+  }, [selectedMood, setPreferences]);
+
   const handleDone = useCallback(() => {
+    commitMood();
     getAnalytics().track('done', {});
     reset();
     navigation.popToTop();
-  }, [reset, navigation]);
-
-  const handleMood = useCallback(
-    (mood: MoodMarker) => {
-      setPreferences({ lastMood: mood });
-      getAnalytics().track('mood_marked', { mood });
-      reset();
-      navigation.popToTop();
-    },
-    [setPreferences, reset, navigation],
-  );
+  }, [commitMood, reset, navigation]);
 
   const handleWalkAgain = useCallback(() => {
     const pace = getPaceById(config.paceId);
+    commitMood();
     getAnalytics().track('walk_again', {
       paceId: config.paceId,
       cue: config.cue,
@@ -74,7 +87,15 @@ export default function ResultScreen() {
     } else {
       navigation.navigate(RhythmicGaitRoutes.Running);
     }
-  }, [start, config.countInEnabled, config.paceId, config.cue, config.durationMinutes, navigation]);
+  }, [
+    commitMood,
+    start,
+    config.countInEnabled,
+    config.paceId,
+    config.cue,
+    config.durationMinutes,
+    navigation,
+  ]);
 
   if (result === undefined) return null;
 
@@ -85,35 +106,66 @@ export default function ResultScreen() {
       <ScreenHeader title={t('home.title')} onBack={handleDone} />
       <View style={styles.content}>
         <View style={styles.heroBlock}>
-          <Text style={styles.heroTitle}>{t('result.title')}</Text>
+          <Text style={styles.heroTitle}>
+            {t('result.title')} <Text style={styles.heroEmoji}>{emojis.sessionComplete}</Text>
+          </Text>
           <Text style={styles.heroSubtitle}>{t('result.subtitle')}</Text>
+        </View>
+
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionHeader}>{t('result.feelingTitle')}</Text>
+          <Text style={styles.sectionHint}>{t('result.tapToSelect')}</Text>
         </View>
 
         <View style={styles.moodRow}>
           {MOOD_CHOICES.map(choice => (
-            <Pressable
+            <MoodTile
               key={choice.value}
-              onPress={() => handleMood(choice.value)}
-              accessibilityRole="button"
-              accessibilityLabel={t(choice.labelKey)}
-              style={({ pressed }) => [styles.moodButton, pressed && styles.moodButtonPressed]}
+              emoji={choice.emoji}
+              label={t(choice.labelKey)}
+              selected={selectedMood === choice.value}
+              onPress={() => setSelectedMood(choice.value)}
               testID={`mood-${choice.value}`}
-            >
-              <Text style={styles.moodEmoji}>{choice.emoji}</Text>
-              <Text style={styles.moodLabel}>{t(choice.labelKey)}</Text>
-            </Pressable>
+            />
           ))}
         </View>
 
+        <Text style={styles.sectionHeader}>{t('result.summaryTitle')}</Text>
+
         <SectionCard>
-          <StatRow
-            label="Pace"
-            value={`${result.paceIcon} ${result.paceLabel}`}
-            showDivider
+          <SummaryRow
+            iconName="walk-outline"
+            iconTone="red"
+            label={t('result.summary.pace')}
+            right={<Pill tone="red" label={result.paceLabel} />}
           />
-          <StatRow label="Cue used" value={cueLabel} showDivider />
-          <StatRow label="Duration" value={`${result.durationMinutes} min`} showDivider />
-          <StatRow label="BPM" value={`${result.bpm} steps/min`} />
+          <SummaryRow
+            iconName="musical-notes-outline"
+            iconTone="blue"
+            label={t('result.summary.cue')}
+            right={<Pill tone="blue" label={cueLabel} />}
+          />
+          <SummaryRow
+            iconName="time-outline"
+            iconTone="amber"
+            label={t('result.summary.duration')}
+            right={
+              <Text style={styles.rightValue}>
+                {`${result.durationMinutes} ${t('result.summary.durationUnit')}`}
+              </Text>
+            }
+          />
+          <SummaryRow
+            iconName="pulse-outline"
+            iconTone="green"
+            label={t('result.summary.bpm')}
+            showDivider={false}
+            right={
+              <Text style={styles.rightValue}>
+                {`${result.bpm} ${t('result.summary.bpmUnit')}`}
+              </Text>
+            }
+          />
         </SectionCard>
 
         <View style={styles.buttonRow}>
@@ -121,13 +173,58 @@ export default function ResultScreen() {
             <Button variant="secondary" label={t('result.done')} onPress={handleDone} fullWidth />
           </View>
           <View style={styles.buttonFlex}>
-            <Button variant="primary" label={t('result.again')} onPress={handleWalkAgain} fullWidth />
+            <Button
+              variant="primary"
+              label={t('result.again')}
+              onPress={handleWalkAgain}
+              fullWidth
+            />
           </View>
         </View>
       </View>
     </View>
   );
 }
+
+type MoodTileProps = {
+  emoji: string;
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  testID?: string;
+};
+
+// Single mood tile — large emoji + label, with a red ring + checkmark badge
+// when selected. Pure presentation; selection state owned by the parent screen.
+const MoodTile = ({ emoji, label, selected, onPress, testID }: MoodTileProps) => {
+  const { theme } = useUnistyles();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      style={({ pressed }) => [
+        styles.moodTile,
+        selected && styles.moodTileSelected,
+        pressed && styles.moodTilePressed,
+      ]}
+      testID={testID}
+    >
+      <Text style={styles.moodEmoji}>{emoji}</Text>
+      <Text style={[styles.moodLabel, selected && styles.moodLabelSelected]}>{label}</Text>
+      {selected && (
+        <View style={styles.moodCheck}>
+          <Ionicons
+            name="checkmark"
+            size={theme.iconSize.sm}
+            color={theme.colors.brand.onPrimary}
+          />
+        </View>
+      )}
+    </Pressable>
+  );
+};
 
 const styles = StyleSheet.create(theme => ({
   container: {
@@ -137,11 +234,11 @@ const styles = StyleSheet.create(theme => ({
   content: {
     flex: 1,
     padding: theme.spacing.s4,
-    gap: theme.spacing.s5,
+    gap: theme.spacing.s4,
   },
   heroBlock: {
     alignItems: 'center',
-    gap: theme.spacing.s2,
+    gap: theme.spacing.s1,
     paddingVertical: theme.spacing.s3,
   },
   heroTitle: {
@@ -149,8 +246,29 @@ const styles = StyleSheet.create(theme => ({
     fontWeight: theme.typography.weight.bold,
     fontFamily: theme.typography.family.bold,
     color: theme.colors.text.primary,
+    textAlign: 'center',
+  },
+  heroEmoji: {
+    fontSize: theme.typography.size.h2,
   },
   heroSubtitle: {
+    fontSize: theme.typography.size.body,
+    fontWeight: theme.typography.weight.regular,
+    fontFamily: theme.typography.family.regular,
+    color: theme.colors.text.secondary,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sectionHeader: {
+    fontSize: theme.typography.size.h3,
+    fontWeight: theme.typography.weight.bold,
+    fontFamily: theme.typography.family.bold,
+    color: theme.colors.text.primary,
+  },
+  sectionHint: {
     fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.regular,
     fontFamily: theme.typography.family.regular,
@@ -159,9 +277,8 @@ const styles = StyleSheet.create(theme => ({
   moodRow: {
     flexDirection: 'row',
     gap: theme.spacing.s3,
-    justifyContent: 'space-between',
   },
-  moodButton: {
+  moodTile: {
     flex: 1,
     minHeight: 100,
     backgroundColor: theme.colors.bg.surface,
@@ -173,7 +290,12 @@ const styles = StyleSheet.create(theme => ({
     gap: theme.spacing.s1,
     paddingVertical: theme.spacing.s3,
   },
-  moodButtonPressed: {
+  moodTileSelected: {
+    borderWidth: 2,
+    borderColor: theme.colors.brand.primary,
+    backgroundColor: theme.colors.brand.primaryTint,
+  },
+  moodTilePressed: {
     opacity: 0.7,
   },
   moodEmoji: {
@@ -183,6 +305,28 @@ const styles = StyleSheet.create(theme => ({
     fontSize: theme.typography.size.body,
     fontWeight: theme.typography.weight.medium,
     fontFamily: theme.typography.family.medium,
+    color: theme.colors.text.primary,
+  },
+  moodLabelSelected: {
+    color: theme.colors.brand.primary,
+    fontWeight: theme.typography.weight.bold,
+    fontFamily: theme.typography.family.bold,
+  },
+  moodCheck: {
+    position: 'absolute',
+    top: theme.spacing.s2,
+    right: theme.spacing.s2,
+    width: 22,
+    height: 22,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.brand.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rightValue: {
+    fontSize: theme.typography.size.body,
+    fontWeight: theme.typography.weight.bold,
+    fontFamily: theme.typography.family.bold,
     color: theme.colors.text.primary,
   },
   buttonRow: {

@@ -127,6 +127,15 @@ export const en = {
   'result.mood.hard': 'Hard',
   'result.done': 'Done',
   'result.again': 'Walk again',
+  'result.feelingTitle': 'Your feeling',
+  'result.tapToSelect': 'Tap to select',
+  'result.summaryTitle': 'Session summary',
+  'result.summary.pace': 'Pace',
+  'result.summary.cue': 'Cue used',
+  'result.summary.duration': 'Duration',
+  'result.summary.bpm': 'BPM',
+  'result.summary.durationUnit': 'min',
+  'result.summary.bpmUnit': 'steps/min',
 
   // Spoken cue phrases — read while phone is in a pocket.
   'speech.paused': 'Paused',
