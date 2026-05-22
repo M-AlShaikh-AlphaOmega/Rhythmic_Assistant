@@ -10,7 +10,7 @@ import { BigActionButton } from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
 import { t } from '../../../shared/i18n';
 import { useSessionRouteGuard } from '../navigation/useSessionRouteGuard';
-import { useSessionConfig, useSessionStore } from '../store';
+import { getCueById, getPaceById, useSessionConfig, useSessionStore } from '../store';
 
 type NavProp = NativeStackNavigationProp<RhythmicGaitParamList>;
 
@@ -24,6 +24,8 @@ export default function HomeScreen() {
   const { theme } = useUnistyles();
   const config = useSessionConfig();
   const start = useSessionStore(s => s.start);
+  const pace = getPaceById(config.paceId);
+  const cue = getCueById(config.cue);
 
   useSessionRouteGuard();
 
@@ -51,7 +53,19 @@ export default function HomeScreen() {
         { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 16 },
       ]}
     >
-      <View style={styles.topBar}>
+      <View style={styles.header}>
+        <Text style={styles.appName}>{t('home.title')}</Text>
+        <Text style={styles.tagline}>{t('home.tagline')}</Text>
+        <View style={styles.accentLine} />
+      </View>
+
+      <View style={styles.settingsRow}>
+        <View style={styles.setupPill}>
+          <Ionicons name="musical-notes-outline" size={16} color={theme.colors.accent.info} />
+          <Text style={styles.setupText} numberOfLines={1}>
+            {cue.label} | {pace.label} | {config.durationMinutes} min
+          </Text>
+        </View>
         <Pressable
           onPress={handleSettings}
           accessibilityRole="button"
@@ -60,14 +74,8 @@ export default function HomeScreen() {
           style={({ pressed }) => [styles.iconButton, pressed && styles.iconButtonPressed]}
           testID="home-settings"
         >
-          <Ionicons name="settings-outline" size={24} color={theme.colors.text.primary} />
+          <Ionicons name="settings-outline" size={23} color={theme.colors.text.primary} />
         </Pressable>
-      </View>
-
-      <View style={styles.header}>
-        <Text style={styles.appName}>{t('home.title')}</Text>
-        <Text style={styles.tagline}>{t('home.tagline')}</Text>
-        <View style={styles.accentLine} />
       </View>
 
       <View style={styles.hero}>
@@ -80,17 +88,14 @@ export default function HomeScreen() {
         />
       </View>
 
-      <Pressable
+      <BigActionButton
+        variant="rescue"
+        label={t('home.rescue.label')}
+        subLabel={t('home.rescue.sub')}
         onPress={handleRescue}
-        accessibilityRole="button"
-        accessibilityLabel={t('home.rescue.label')}
         accessibilityHint="Starts a strong vibration to help you start walking"
-        hitSlop={16}
-        style={styles.rescueLink}
         testID="home-rescue"
-      >
-        <Text style={styles.rescueLabel}>{t('home.rescue.label')}</Text>
-      </Pressable>
+      />
     </View>
   );
 }
@@ -100,12 +105,33 @@ const styles = StyleSheet.create(theme => ({
     flex: 1,
     backgroundColor: theme.colors.bg.app,
     paddingHorizontal: theme.spacing.s5,
+    gap: theme.spacing.s4,
   },
-  topBar: {
+  settingsRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
     minHeight: 44,
+    gap: theme.spacing.s3,
+  },
+  setupPill: {
+    flex: 1,
+    minHeight: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.s2,
+    paddingHorizontal: theme.spacing.s3,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.accent.infoSurface,
+    borderWidth: 1,
+    borderColor: theme.colors.accent.infoBorder,
+  },
+  setupText: {
+    flex: 1,
+    fontSize: theme.typography.size.caption,
+    fontWeight: theme.typography.weight.semibold,
+    fontFamily: theme.typography.family.semibold,
+    color: theme.colors.text.primary,
   },
   iconButton: {
     width: 44,
@@ -120,8 +146,8 @@ const styles = StyleSheet.create(theme => ({
   header: {
     alignItems: 'center',
     gap: theme.spacing.s2,
-    paddingTop: theme.spacing.s5,
-    paddingBottom: theme.spacing.s4,
+    paddingTop: theme.spacing.s4,
+    paddingBottom: theme.spacing.s2,
   },
   appName: {
     fontSize: theme.typography.size.h2,
@@ -148,18 +174,5 @@ const styles = StyleSheet.create(theme => ({
   hero: {
     flex: 1,
     justifyContent: 'center',
-  },
-  rescueLink: {
-    alignSelf: 'center',
-    paddingVertical: theme.spacing.s3,
-    paddingHorizontal: theme.spacing.s4,
-    marginBottom: theme.spacing.s2,
-  },
-  rescueLabel: {
-    fontSize: theme.typography.size.body,
-    fontWeight: theme.typography.weight.medium,
-    fontFamily: theme.typography.family.medium,
-    color: theme.colors.brand.primary,
-    textDecorationLine: 'underline',
   },
 }));

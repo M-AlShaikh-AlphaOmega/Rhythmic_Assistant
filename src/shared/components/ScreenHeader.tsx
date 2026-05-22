@@ -46,6 +46,8 @@ const styles = StyleSheet.create(theme => ({
     paddingHorizontal: theme.spacing.s4,
     paddingBottom: theme.spacing.s3,
     backgroundColor: theme.colors.bg.app,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border.subtle,
   },
   backButton: {
     width: BACK_HIT_SIZE,
@@ -56,7 +58,7 @@ const styles = StyleSheet.create(theme => ({
   title: {
     flex: 1,
     textAlign: 'center',
-    fontSize: theme.typography.size.h1,
+    fontSize: theme.typography.size.h3,
     fontWeight: theme.typography.weight.semibold,
     color: theme.colors.text.primary,
     fontFamily: theme.typography.family.semibold,

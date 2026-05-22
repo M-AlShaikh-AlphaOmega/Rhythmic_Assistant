@@ -4,9 +4,13 @@ import { useKeepAwake } from 'expo-keep-awake';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 
-import { BigActionButton, Button, ProgressBar } from '../../../shared/components';
+import {
+  AudioVisualizer,
+  Button,
+  CircularProgressTimer,
+} from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
 import { t } from '../../../shared/i18n';
 import { useCue, useSpokenReminders, useTimer } from '../hooks';
@@ -34,7 +38,6 @@ const formatTime = (seconds: number): string => {
 export default function RescueScreen() {
   const navigation = useNavigation<NavProp>();
   const insets = useSafeAreaInsets();
-  const { theme } = useUnistyles();
   const phase = useSessionPhase();
   const isPaused = useIsPaused();
   const remaining = useRemainingSeconds();
@@ -88,18 +91,22 @@ export default function RescueScreen() {
       </View>
 
       <View style={styles.timerBlock}>
-        <Text style={styles.timer}>{formatTime(remaining)}</Text>
+        <CircularProgressTimer
+          progress={progress}
+          timeLabel={formatTime(remaining)}
+          active={!isPaused}
+          statusLabel={isPaused ? 'Paused' : 'Strong cue'}
+        />
+        <AudioVisualizer active={!isPaused} />
       </View>
 
       <View style={styles.actions}>
-        <View style={styles.progressBlock}>
-          <Text style={styles.percentLabel}>{Math.round(progress * 100)}% complete</Text>
-          <ProgressBar progress={progress} color={theme.colors.brand.primary} />
-        </View>
-        <BigActionButton
+        <Text style={styles.percentLabel}>{Math.round(progress * 100)}% complete</Text>
+        <Button
           variant="primary"
           label={isPaused ? t('rescue.resume') : t('rescue.pause')}
           onPress={isPaused ? resume : pause}
+          fullWidth
           testID="rescue-pause"
         />
         <Button
@@ -141,19 +148,10 @@ const styles = StyleSheet.create(theme => ({
   timerBlock: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  timer: {
-    fontSize: 96,
-    fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.bold,
-    color: theme.colors.text.primary,
-    letterSpacing: -2,
+    gap: theme.spacing.s5,
   },
   actions: {
-    gap: theme.spacing.s4,
-  },
-  progressBlock: {
-    gap: theme.spacing.s2,
+    gap: theme.spacing.s3,
   },
   percentLabel: {
     fontSize: theme.typography.size.body,

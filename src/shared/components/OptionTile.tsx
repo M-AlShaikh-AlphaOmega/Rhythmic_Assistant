@@ -39,7 +39,7 @@ const styles = StyleSheet.create(theme => ({
     flex: 1,
     alignItems: 'center',
     padding: theme.spacing.s4,
-    borderRadius: theme.radius.lg,
+    borderRadius: theme.radius.md,
     borderWidth: 1.5,
     gap: theme.spacing.s2,
   },

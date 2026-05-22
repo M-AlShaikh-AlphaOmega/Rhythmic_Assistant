@@ -3,6 +3,7 @@
 const palette = {
   red700: '#8B1529',
   red600: '#A41E37',
+  red100: '#FBE8EC',
   blue600: '#2563EB',
   blue500: '#5B8DEF',
   blue200: '#BFD3FF',
@@ -33,6 +34,7 @@ export const colors = {
     primary: palette.red600,
     primaryPressed: palette.red700,
     primaryDisabled: palette.gray300,
+    primarySurface: palette.red100,
     onPrimary: palette.white,
   },
   // Accent / information (selected states, hero banner, Active badge, ring progress)

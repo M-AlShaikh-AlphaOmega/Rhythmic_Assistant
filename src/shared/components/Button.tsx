@@ -10,6 +10,7 @@ export type ButtonProps = {
   disabled?: boolean;
   iconName?: ComponentProps<typeof Ionicons>['name'];
   fullWidth?: boolean;
+  testID?: string;
 };
 
 // Reusable button for all CTA surfaces: primary (red filled) and secondary (outlined).
@@ -21,6 +22,7 @@ export const Button = ({
   disabled = false,
   iconName,
   fullWidth = false,
+  testID,
 }: ButtonProps) => {
   const { theme } = useUnistyles();
 
@@ -38,6 +40,7 @@ export const Button = ({
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled }}
+      testID={testID}
       style={({ pressed }) => [
         styles.base,
         variant === 'primary' ? styles.primary : styles.secondary,

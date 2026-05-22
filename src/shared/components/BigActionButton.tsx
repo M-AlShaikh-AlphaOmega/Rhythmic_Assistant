@@ -62,10 +62,10 @@ export const BigActionButton = ({
 const styles = StyleSheet.create(theme => ({
   base: {
     width: '100%',
-    minHeight: 160,
-    paddingVertical: theme.spacing.s6,
+    minHeight: 148,
+    paddingVertical: theme.spacing.s5,
     paddingHorizontal: theme.spacing.s5,
-    borderRadius: theme.radius.lg,
+    borderRadius: theme.radius.md,
     justifyContent: 'center',
     alignItems: 'center',
     ...theme.shadows.md,
@@ -77,9 +77,9 @@ const styles = StyleSheet.create(theme => ({
     backgroundColor: theme.colors.brand.primaryPressed,
   },
   rescue: {
-    backgroundColor: theme.colors.accent.infoSurface,
-    borderWidth: 2,
-    borderColor: theme.colors.accent.info,
+    backgroundColor: theme.colors.brand.primarySurface,
+    borderWidth: 1.5,
+    borderColor: theme.colors.brand.primary,
   },
   rescuePressed: {
     opacity: 0.85,
@@ -98,7 +98,7 @@ const styles = StyleSheet.create(theme => ({
     color: theme.colors.brand.onPrimary,
   },
   labelRescue: {
-    color: theme.colors.accent.info,
+    color: theme.colors.brand.primary,
   },
   subLabel: {
     fontSize: theme.typography.size.body,

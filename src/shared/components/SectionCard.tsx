@@ -20,7 +20,7 @@ export const SectionCard = ({ title, children, style }: SectionCardProps) => (
 const styles = StyleSheet.create(theme => ({
   card: {
     backgroundColor: theme.colors.bg.surface,
-    borderRadius: theme.radius.lg,
+    borderRadius: theme.radius.md,
     borderWidth: 1,
     borderColor: theme.colors.border.default,
     padding: theme.spacing.s4,

@@ -57,15 +57,6 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       <ScreenHeader title={t('settings.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <SectionCard title={t('settings.bigText.sectionTitle')}>
-          <ToggleRow
-            title={t('settings.bigText.title')}
-            description={t('settings.bigText.description')}
-            value={preferences.bigTextMode}
-            onValueChange={v => setPreferences({ bigTextMode: v })}
-          />
-        </SectionCard>
-
         <SectionCard title={t('home.cue.sectionTitle')}>
           <View style={styles.cueRow}>
             {CUES.map(cue => (

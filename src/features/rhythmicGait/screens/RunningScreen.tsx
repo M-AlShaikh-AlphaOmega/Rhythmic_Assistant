@@ -4,9 +4,14 @@ import { useKeepAwake } from 'expo-keep-awake';
 import React, { useCallback, useEffect } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
 
-import { BigActionButton, HoldToConfirmButton, ProgressBar } from '../../../shared/components';
+import {
+  AudioVisualizer,
+  Button,
+  CircularProgressTimer,
+  HoldToConfirmButton,
+} from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
 import { t } from '../../../shared/i18n';
 import { useCue, useSpokenReminders, useTimer } from '../hooks';
@@ -35,7 +40,6 @@ const formatTime = (seconds: number): string => {
 export default function RunningScreen() {
   const navigation = useNavigation<NavProp>();
   const insets = useSafeAreaInsets();
-  const { theme } = useUnistyles();
   const phase = useSessionPhase();
   const isPaused = useIsPaused();
   const remainingSeconds = useRemainingSeconds();
@@ -67,19 +71,22 @@ export default function RunningScreen() {
       ]}
     >
       <View style={styles.timerBlock}>
-        <Text style={styles.timer}>{formatTime(remainingSeconds)}</Text>
-        {isPaused && <Text style={styles.pausedLabel}>Paused</Text>}
+        <CircularProgressTimer
+          progress={progress}
+          timeLabel={formatTime(remainingSeconds)}
+          active={!isPaused}
+          statusLabel={isPaused ? 'Paused' : 'Rhythm running'}
+        />
+        <AudioVisualizer active={!isPaused} />
       </View>
 
       <View style={styles.actions}>
-        <View style={styles.progressBlock}>
-          <Text style={styles.percentLabel}>{Math.round(progress * 100)}% complete</Text>
-          <ProgressBar progress={progress} color={theme.colors.brand.primary} />
-        </View>
-        <BigActionButton
+        <Text style={styles.percentLabel}>{Math.round(progress * 100)}% complete</Text>
+        <Button
           variant="primary"
           label={isPaused ? t('running.resume') : t('running.pause')}
           onPress={isPaused ? resume : pause}
+          fullWidth
           testID="running-pause"
         />
         <HoldToConfirmButton
@@ -105,28 +112,10 @@ const styles = StyleSheet.create(theme => ({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.spacing.s3,
-  },
-  timer: {
-    fontSize: 120,
-    fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.bold,
-    color: theme.colors.text.primary,
-    letterSpacing: -3,
-  },
-  pausedLabel: {
-    fontSize: theme.typography.size.h2,
-    fontWeight: theme.typography.weight.semibold,
-    fontFamily: theme.typography.family.semibold,
-    color: theme.colors.warn.paused,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
+    gap: theme.spacing.s5,
   },
   actions: {
-    gap: theme.spacing.s4,
-  },
-  progressBlock: {
-    gap: theme.spacing.s2,
+    gap: theme.spacing.s3,
   },
   percentLabel: {
     fontSize: theme.typography.size.body,

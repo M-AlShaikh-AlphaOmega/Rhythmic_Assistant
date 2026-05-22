@@ -4,15 +4,16 @@ import Svg, { Circle } from 'react-native-svg';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 export type CircularProgressTimerProps = {
-  // Elapsed / total ratio (0–1)
+  // Elapsed / total ratio (0-1)
   progress: number;
   // Formatted display time, e.g. "04:50"
   timeLabel: string;
   active: boolean;
+  statusLabel?: string;
 };
 
-const RING_SIZE = 200;
-const STROKE = 14;
+const RING_SIZE = 286;
+const STROKE = 16;
 const RADIUS = (RING_SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
@@ -22,11 +23,12 @@ export const CircularProgressTimer = ({
   progress,
   timeLabel,
   active,
+  statusLabel = 'remaining',
 }: CircularProgressTimerProps) => {
   const { theme } = useUnistyles();
   const clamped = Math.min(Math.max(progress, 0), 1);
   const dashOffset = CIRCUMFERENCE * (1 - clamped);
-  const arcColor = active ? theme.colors.accent.info : theme.colors.text.secondary;
+  const arcColor = active ? theme.colors.brand.primary : theme.colors.warn.paused;
 
   return (
     <View
@@ -62,7 +64,7 @@ export const CircularProgressTimer = ({
       </View>
       <View style={styles.center} pointerEvents="none" importantForAccessibility="no-hide-descendants">
         <Text style={styles.timer}>{timeLabel}</Text>
-        <Text style={styles.remainingLabel}>remaining</Text>
+        <Text style={[styles.remainingLabel, !active && styles.pausedLabel]}>{statusLabel}</Text>
       </View>
     </View>
   );
@@ -82,16 +84,21 @@ const styles = StyleSheet.create(theme => ({
     gap: theme.spacing.s1,
   },
   timer: {
-    fontSize: theme.typography.size.displayLarge,
+    fontSize: 64,
     fontWeight: theme.typography.weight.bold,
     fontFamily: theme.typography.family.bold,
     color: theme.colors.text.primary,
-    lineHeight: theme.typography.size.displayLarge * theme.typography.lineHeight.tight,
+    lineHeight: 64 * theme.typography.lineHeight.tight,
   },
   remainingLabel: {
-    fontSize: theme.typography.size.caption,
-    fontWeight: theme.typography.weight.regular,
-    fontFamily: theme.typography.family.regular,
+    fontSize: theme.typography.size.body,
+    fontWeight: theme.typography.weight.semibold,
+    fontFamily: theme.typography.family.semibold,
     color: theme.colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: theme.typography.letterSpacing.overline,
+  },
+  pausedLabel: {
+    color: theme.colors.warn.paused,
   },
 }));

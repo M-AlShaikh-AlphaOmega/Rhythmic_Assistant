@@ -34,7 +34,7 @@ export const ToggleRow = ({
           onValueChange={onValueChange}
           trackColor={{
             false: theme.colors.border.default,
-            true: theme.colors.brand.primary,
+            true: theme.colors.accent.info,
           }}
           thumbColor={theme.colors.bg.surface}
           accessibilityLabel={title}
