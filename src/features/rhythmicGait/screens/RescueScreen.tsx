@@ -1,12 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useKeepAwake } from 'expo-keep-awake';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
-import { BigActionButton, HoldToConfirmButton, ProgressBar } from '../../../shared/components';
+import { BigActionButton, Button, ProgressBar } from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
 import { t } from '../../../shared/i18n';
 import { useCue, useSpokenReminders, useTimer } from '../hooks';
@@ -27,48 +27,68 @@ const formatTime = (seconds: number): string => {
   return `${m}:${s}`;
 };
 
-// Running session screen — the surface a user glances at mid-walk.
-// Stripped down to a single huge timer, one big Pause/Resume, and a small
-// hold-to-confirm "End walk" at the bottom. No visualizer, no cue chip,
-// no decorative elements — every pixel earns its place.
-// Keeps the screen awake for the duration of the session.
-export default function RunningScreen() {
+// Rescue screen — instant start, zero configuration.
+// On mount, the rescue session begins immediately via startRescue().
+// The user's normal config is snapshotted and restored on reset().
+// "I'm OK" exits without a hold-to-confirm — leaving must be easy.
+export default function RescueScreen() {
   const navigation = useNavigation<NavProp>();
   const insets = useSafeAreaInsets();
   const { theme } = useUnistyles();
   const phase = useSessionPhase();
   const isPaused = useIsPaused();
-  const remainingSeconds = useRemainingSeconds();
+  const remaining = useRemainingSeconds();
   const progress = useSessionProgress();
+  const startRescue = useSessionStore(s => s.startRescue);
   const pause = useSessionStore(s => s.pause);
   const resume = useSessionStore(s => s.resume);
   const stop = useSessionStore(s => s.stop);
+  const reset = useSessionStore(s => s.reset);
+  const startedRef = useRef(false);
 
   useKeepAwake();
   useTimer();
   useCue();
   useSpokenReminders();
 
+  // Kick off the rescue session exactly once on mount.
+  useEffect(() => {
+    if (!startedRef.current && phase === 'idle') {
+      startedRef.current = true;
+      startRescue();
+    }
+  }, [phase, startRescue]);
+
+  // Natural completion: return to Home, restoring user's normal config.
   useEffect(() => {
     if (phase === 'completed') {
-      navigation.replace(RhythmicGaitRoutes.Result);
+      reset();
+      navigation.popToTop();
     }
-  }, [phase, navigation]);
+  }, [phase, reset, navigation]);
 
-  const handleEnd = useCallback(() => {
-    stop();
-  }, [stop]);
+  const handleExit = useCallback(() => {
+    if (phase === 'running' || phase === 'paused') {
+      stop();
+    }
+    reset();
+    navigation.popToTop();
+  }, [phase, stop, reset, navigation]);
 
   return (
     <View
       style={[
         styles.container,
-        { paddingTop: insets.top + 32, paddingBottom: insets.bottom + 16 },
+        { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 16 },
       ]}
     >
+      <View style={styles.header}>
+        <Text style={styles.title}>{t('rescue.title')}</Text>
+        <Text style={styles.subtitle}>{t('rescue.subtitle')}</Text>
+      </View>
+
       <View style={styles.timerBlock}>
-        <Text style={styles.timer}>{formatTime(remainingSeconds)}</Text>
-        {isPaused && <Text style={styles.pausedLabel}>Paused</Text>}
+        <Text style={styles.timer}>{formatTime(remaining)}</Text>
       </View>
 
       <View style={styles.actions}>
@@ -78,16 +98,15 @@ export default function RunningScreen() {
         </View>
         <BigActionButton
           variant="primary"
-          label={isPaused ? t('running.resume') : t('running.pause')}
+          label={isPaused ? t('rescue.resume') : t('rescue.pause')}
           onPress={isPaused ? resume : pause}
-          testID="running-pause"
+          testID="rescue-pause"
         />
-        <HoldToConfirmButton
-          label={t('running.end')}
-          hint={t('running.endHint')}
-          holdDurationMs={2000}
-          onConfirm={handleEnd}
-          testID="running-end"
+        <Button
+          variant="secondary"
+          label={t('rescue.exit')}
+          onPress={handleExit}
+          fullWidth
         />
       </View>
     </View>
@@ -101,26 +120,34 @@ const styles = StyleSheet.create(theme => ({
     paddingHorizontal: theme.spacing.s5,
     justifyContent: 'space-between',
   },
-  timerBlock: {
-    flex: 1,
+  header: {
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: theme.spacing.s3,
+    gap: theme.spacing.s2,
   },
-  timer: {
-    fontSize: 120,
+  title: {
+    fontSize: theme.typography.size.h2,
     fontWeight: theme.typography.weight.bold,
     fontFamily: theme.typography.family.sans,
     color: theme.colors.text.primary,
-    letterSpacing: -3,
+    textAlign: 'center',
   },
-  pausedLabel: {
-    fontSize: theme.typography.size.h2,
-    fontWeight: theme.typography.weight.semibold,
+  subtitle: {
+    fontSize: theme.typography.size.body,
+    fontWeight: theme.typography.weight.regular,
     fontFamily: theme.typography.family.sans,
-    color: theme.colors.warn.paused,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
+  },
+  timerBlock: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timer: {
+    fontSize: 96,
+    fontWeight: theme.typography.weight.bold,
+    fontFamily: theme.typography.family.sans,
+    color: theme.colors.text.primary,
+    letterSpacing: -2,
   },
   actions: {
     gap: theme.spacing.s4,

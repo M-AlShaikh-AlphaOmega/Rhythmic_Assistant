@@ -40,4 +40,6 @@ yarn-error.*
 /ios
 /android
 
+# Claude
 .claude/plan.md
+.claude/Docs

@@ -2,17 +2,29 @@
 export type CueId = 'audio' | 'vibration' | 'combined';
 export type PaceId = 'gentle' | 'steady' | 'energizing';
 export type DurationMinutes = 5 | 10 | 15;
+export type HapticStrength = 'soft' | 'medium' | 'strong';
+export type MoodMarker = 'good' | 'same' | 'hard';
 
 // All possible states the session state machine can be in.
 export type RuntimeStatus = 'idle' | 'countdown' | 'running' | 'paused' | 'completed';
 
-// User choices captured on the Home screen.
+// User choices captured on the Settings screen.
 export interface SessionConfig {
   cue: CueId;
   paceId: PaceId;
   durationMinutes: DurationMinutes;
   countInEnabled: boolean;
   endChimeEnabled: boolean;
+}
+
+// Persistent UX preferences — separate from per-session config.
+// Lives alongside config in AsyncStorage; never cleared by reset().
+export interface Preferences {
+  bigTextMode: boolean;
+  volume: number; // 0..1
+  hapticStrength: HapticStrength;
+  emergencyContact?: string;
+  lastMood?: MoodMarker;
 }
 
 // Live timing and phase data for an active or paused session.
@@ -37,6 +49,7 @@ export interface SessionResult {
   bpm: number;
   completedAt: number;
   wasFullyCompleted: boolean;
+  isRescue: boolean;
 }
 
 // Catalog item types — used by catalogData and selectors.
@@ -64,12 +77,18 @@ export interface DurationOption {
 // Combined store state shape — implemented by the Zustand store.
 export interface SessionState {
   config: SessionConfig;
+  preferences: Preferences;
   runtime: SessionRuntime;
   lastResult: SessionResult | undefined;
+  // Snapshot of the user's config before a rescue session began.
+  // Restored on reset() so rescue never overwrites the user's normal settings.
+  rescueSnapshot: SessionConfig | undefined;
 
   // Actions
   setConfig: (partial: Partial<SessionConfig>) => void;
+  setPreferences: (partial: Partial<Preferences>) => void;
   start: () => void;
+  startRescue: () => void;
   tickCountdown: () => void;
   startRunning: () => void;
   tickOnce: (nowMs: number) => void;

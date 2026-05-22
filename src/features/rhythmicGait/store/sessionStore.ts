@@ -3,8 +3,15 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 import { getAnalytics } from '../../../shared/services/analytics';
+import { speak } from '../services/cueSpeech';
 import { getPaceById, toSeconds } from './catalogData';
-import type { SessionConfig, SessionResult, SessionRuntime, SessionState } from './types';
+import type {
+  Preferences,
+  SessionConfig,
+  SessionResult,
+  SessionRuntime,
+  SessionState,
+} from './types';
 
 // Builds the common session context used by every telemetry payload.
 const buildSessionContext = (config: SessionConfig) => {
@@ -25,6 +32,24 @@ const DEFAULT_CONFIG: SessionConfig = {
   endChimeEnabled: true,
 };
 
+const DEFAULT_PREFERENCES: Preferences = {
+  bigTextMode: true,
+  volume: 0.7,
+  hapticStrength: 'strong',
+  emergencyContact: undefined,
+  lastMood: undefined,
+};
+
+// Hard-coded rescue config used by startRescue() — no user choice in a freeze moment.
+// Vibration-only, gentlest pace, short duration, no count-in, no end chime.
+const RESCUE_CONFIG: SessionConfig = {
+  cue: 'vibration',
+  paceId: 'gentle',
+  durationMinutes: 5,
+  countInEnabled: false,
+  endChimeEnabled: false,
+};
+
 const DEFAULT_RUNTIME: SessionRuntime = {
   status: 'idle',
   startedAt: null,
@@ -41,6 +66,7 @@ const buildResult = (
   config: SessionConfig,
   runtime: SessionRuntime,
   wasFullyCompleted: boolean,
+  isRescue: boolean,
 ): SessionResult => {
   const pace = getPaceById(config.paceId);
   return {
@@ -52,21 +78,28 @@ const buildResult = (
     bpm: pace.bpm,
     completedAt: Date.now(),
     wasFullyCompleted,
+    isRescue,
   };
 };
 
-// Feature-scoped Zustand store for session configuration, runtime state, and results.
-// Persist middleware serialises only `config` to AsyncStorage so the user's last
-// choices are restored on next app launch. Runtime and lastResult are in-memory only.
+// Feature-scoped Zustand store for session configuration, preferences, runtime state, and results.
+// Persist middleware serialises `config` and `preferences` to AsyncStorage so the user's last
+// choices survive across launches. Runtime, lastResult, and rescueSnapshot are in-memory only.
 export const useSessionStore = create<SessionState>()(
   persist(
     (set, get) => ({
       config: DEFAULT_CONFIG,
+      preferences: DEFAULT_PREFERENCES,
       runtime: { ...DEFAULT_RUNTIME },
       lastResult: undefined,
+      rescueSnapshot: undefined,
 
       setConfig: (partial) => {
         set(s => ({ config: { ...s.config, ...partial } }));
+      },
+
+      setPreferences: (partial) => {
+        set(s => ({ preferences: { ...s.preferences, ...partial } }));
       },
 
       // Transitions from idle to countdown (if countInEnabled) or directly to running.
@@ -85,8 +118,19 @@ export const useSessionStore = create<SessionState>()(
         }
       },
 
-      // Decrements the countdown digit. Transitions to running when it reaches 1
-      // (the digit 1 is displayed, then startRunning is called).
+      // Starts an emergency rescue session: snapshots the user's current config,
+      // replaces it with the rescue config, and goes straight to running (no count-in).
+      // reset() restores the snapshot so rescue never destroys the user's normal settings.
+      startRescue: () => {
+        const { config } = get();
+        set({
+          rescueSnapshot: config,
+          config: RESCUE_CONFIG,
+        });
+        get().startRunning();
+      },
+
+      // Decrements the countdown digit. Transitions to running when it reaches 1.
       tickCountdown: () => {
         const { runtime } = get();
         if (runtime.status !== 'countdown') return;
@@ -122,7 +166,6 @@ export const useSessionStore = create<SessionState>()(
 
       // Called each timer tick with the current system timestamp.
       // Uses clock deltas (not increment counting) to avoid drift.
-      // The timer engine in Feature 5 is responsible for calling this at the desired interval.
       tickOnce: (nowMs) => {
         const { runtime } = get();
         if (runtime.status !== 'running' || runtime.startedAt === null) return;
@@ -159,6 +202,7 @@ export const useSessionStore = create<SessionState>()(
           elapsedSeconds: runtime.elapsedSeconds,
           remainingSeconds: runtime.remainingSeconds,
         });
+        speak('paused');
       },
 
       resume: () => {
@@ -178,43 +222,59 @@ export const useSessionStore = create<SessionState>()(
           elapsedSeconds: runtime.elapsedSeconds,
           remainingSeconds: runtime.remainingSeconds,
         });
+        speak('resumed');
       },
 
       stop: () => {
-        const { config, runtime } = get();
+        const { config, runtime, rescueSnapshot } = get();
+        const isRescue = rescueSnapshot !== undefined;
         set({
           runtime: { ...runtime, status: 'completed' },
-          lastResult: buildResult(config, runtime, false),
+          lastResult: buildResult(config, runtime, false, isRescue),
         });
         getAnalytics().track('session_stopped', {
           ...buildSessionContext(config),
           elapsedSeconds: runtime.elapsedSeconds,
           remainingSeconds: runtime.remainingSeconds,
           wasFullyCompleted: false,
+          isRescue,
         });
       },
 
       complete: () => {
-        const { config, runtime } = get();
+        const { config, runtime, rescueSnapshot } = get();
+        const isRescue = rescueSnapshot !== undefined;
         set({
           runtime: { ...runtime, status: 'completed', remainingSeconds: 0 },
-          lastResult: buildResult(config, runtime, true),
+          lastResult: buildResult(config, runtime, true, isRescue),
         });
-        getAnalytics().track('session_completed', buildSessionContext(config));
+        getAnalytics().track('session_completed', { ...buildSessionContext(config), isRescue });
+        speak('complete');
       },
 
-      // Resets runtime to idle defaults. Config is intentionally preserved.
-      // lastResult is preserved so the Result screen can still read it during the
-      // transition animation before the next session clears it.
+      // Resets runtime to idle defaults. Restores user's config if a rescue session
+      // was active. Preferences and lastResult are preserved.
       reset: () => {
-        set({ runtime: { ...DEFAULT_RUNTIME } });
+        const { rescueSnapshot } = get();
+        if (rescueSnapshot !== undefined) {
+          set({
+            runtime: { ...DEFAULT_RUNTIME },
+            config: rescueSnapshot,
+            rescueSnapshot: undefined,
+          });
+        } else {
+          set({ runtime: { ...DEFAULT_RUNTIME } });
+        }
       },
     }),
     {
       name: 'Rythmic-session-config',
       storage: createJSONStorage(() => AsyncStorage),
-      // Only persist the user's configuration — runtime state is never saved.
-      partialize: (state) => ({ config: state.config }),
+      // Persist user configuration and preferences only — runtime state is never saved.
+      partialize: (state) => ({
+        config: state.config,
+        preferences: state.preferences,
+      }),
     },
   ),
 );

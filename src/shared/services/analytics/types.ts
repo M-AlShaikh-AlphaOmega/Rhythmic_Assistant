@@ -1,4 +1,4 @@
-import type { CueId, PaceId } from '../../../features/rhythmicGait/store';
+import type { CueId, MoodMarker, PaceId } from '../../../features/rhythmicGait/store';
 
 // Telemetry event catalog for the rhythmic-gait session flow (RGA-031).
 export type AnalyticsEventName =
@@ -8,6 +8,7 @@ export type AnalyticsEventName =
   | 'session_stopped'
   | 'session_completed'
   | 'walk_again'
+  | 'mood_marked'
   | 'done';
 
 type SessionContext = {
@@ -22,14 +23,19 @@ type ProgressContext = {
   remainingSeconds: number;
 };
 
+type RescueContext = {
+  isRescue: boolean;
+};
+
 // Typed payload per event — enforces required fields at the call site.
 export type AnalyticsEventPayload = {
   session_started: SessionContext;
   session_paused: SessionContext & ProgressContext;
   session_resumed: SessionContext & ProgressContext;
-  session_stopped: SessionContext & ProgressContext & { wasFullyCompleted: false };
-  session_completed: SessionContext;
+  session_stopped: SessionContext & ProgressContext & { wasFullyCompleted: false } & RescueContext;
+  session_completed: SessionContext & RescueContext;
   walk_again: SessionContext;
+  mood_marked: { mood: MoodMarker };
   done: Record<string, never>;
 };
 
