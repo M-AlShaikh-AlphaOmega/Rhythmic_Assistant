@@ -2,14 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 import {
   Button,
+  MetricTile,
   Pill,
   ScreenHeader,
   SectionCard,
+  StreakBanner,
   SummaryRow,
 } from '../../../shared/components';
 import { RhythmicGaitParamList, RhythmicGaitRoutes } from '../../../shared/constants/routes';
@@ -27,14 +30,22 @@ import type { MoodMarker } from '../store';
 
 type NavProp = NativeStackNavigationProp<RhythmicGaitParamList>;
 
+// Placeholder live metrics + streak data — none of these are tracked by the store yet.
+// Held as constants here so a follow-up task can swap them for real selectors in
+// a single, obvious place.
+const PLACEHOLDER_STEPS = '412';
+const PLACEHOLDER_CADENCE = '95';
+const PLACEHOLDER_DISTANCE = '0.3';
+
 const MOOD_CHOICES: ReadonlyArray<{
   value: MoodMarker;
   emoji: string;
   labelKey: 'result.mood.good' | 'result.mood.same' | 'result.mood.hard';
+  captionKey: 'result.mood.goodCaption' | 'result.mood.sameCaption' | 'result.mood.hardCaption';
 }> = [
-  { value: 'good', emoji: '🙂', labelKey: 'result.mood.good' },
-  { value: 'same', emoji: '😐', labelKey: 'result.mood.same' },
-  { value: 'hard', emoji: '🙁', labelKey: 'result.mood.hard' },
+  { value: 'good', emoji: '🙂', labelKey: 'result.mood.good', captionKey: 'result.mood.goodCaption' },
+  { value: 'same', emoji: '😐', labelKey: 'result.mood.same', captionKey: 'result.mood.sameCaption' },
+  { value: 'hard', emoji: '🙁', labelKey: 'result.mood.hard', captionKey: 'result.mood.hardCaption' },
 ];
 
 // Session result screen — gentle close to a walk.
@@ -43,6 +54,7 @@ const MOOD_CHOICES: ReadonlyArray<{
 // so accidental presses do not overwrite the most recent intentional mood.
 export default function ResultScreen() {
   const navigation = useNavigation<NavProp>();
+  const insets = useSafeAreaInsets();
   const result = useLastResult();
   const config = useSessionConfig();
   const reset = useSessionStore(s => s.reset);
@@ -97,6 +109,9 @@ export default function ResultScreen() {
     navigation,
   ]);
 
+  // TODO: navigate to Progress screen when the route exists.
+  const handleViewProgress = useCallback(() => {}, []);
+
   if (result === undefined) return null;
 
   const cueLabel = getCueById(result.cue).label;
@@ -104,13 +119,22 @@ export default function ResultScreen() {
   return (
     <View style={styles.container}>
       <ScreenHeader title={t('home.title')} onBack={handleDone} />
-      <View style={styles.content}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 16 }]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.heroBlock}>
           <Text style={styles.heroTitle}>
             {t('result.title')} <Text style={styles.heroEmoji}>{emojis.sessionComplete}</Text>
           </Text>
           <Text style={styles.heroSubtitle}>{t('result.subtitle')}</Text>
         </View>
+
+        <StreakBanner
+          title={t('result.streakTitle')}
+          subtitle={t('result.streakSubtitle')}
+        />
 
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionHeader}>{t('result.feelingTitle')}</Text>
@@ -123,11 +147,34 @@ export default function ResultScreen() {
               key={choice.value}
               emoji={choice.emoji}
               label={t(choice.labelKey)}
+              caption={t(choice.captionKey)}
               selected={selectedMood === choice.value}
               onPress={() => setSelectedMood(choice.value)}
               testID={`mood-${choice.value}`}
             />
           ))}
+        </View>
+
+        <Text style={styles.sectionHeader}>{t('result.walkStatsTitle')}</Text>
+
+        <View style={styles.metricsRow}>
+          <MetricTile
+            icon="footsteps-outline"
+            label={t('result.steps')}
+            value={PLACEHOLDER_STEPS}
+          />
+          <MetricTile
+            icon="pulse-outline"
+            label={t('result.cadence')}
+            value={PLACEHOLDER_CADENCE}
+            unit={t('result.cadenceUnit')}
+          />
+          <MetricTile
+            icon="trail-sign-outline"
+            label={t('result.distance')}
+            value={PLACEHOLDER_DISTANCE}
+            unit={t('result.distanceUnit')}
+          />
         </View>
 
         <Text style={styles.sectionHeader}>{t('result.summaryTitle')}</Text>
@@ -181,7 +228,9 @@ export default function ResultScreen() {
             />
           </View>
         </View>
-      </View>
+
+        <ProgressLink onPress={handleViewProgress} label={t('result.viewProgress')} />
+      </ScrollView>
     </View>
   );
 }
@@ -189,20 +238,22 @@ export default function ResultScreen() {
 type MoodTileProps = {
   emoji: string;
   label: string;
+  caption?: string;
   selected: boolean;
   onPress: () => void;
   testID?: string;
 };
 
-// Single mood tile — large emoji + label, with a red ring + checkmark badge
-// when selected. Pure presentation; selection state owned by the parent screen.
-const MoodTile = ({ emoji, label, selected, onPress, testID }: MoodTileProps) => {
+// Single mood tile — large emoji + label + optional sub-caption, with a red ring
+// + checkmark badge when selected. Pure presentation; selection state owned by
+// the parent screen.
+const MoodTile = ({ emoji, label, caption, selected, onPress, testID }: MoodTileProps) => {
   const { theme } = useUnistyles();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={caption !== undefined ? `${label}. ${caption}` : label}
       accessibilityState={{ selected }}
       style={({ pressed }) => [
         styles.moodTile,
@@ -213,6 +264,11 @@ const MoodTile = ({ emoji, label, selected, onPress, testID }: MoodTileProps) =>
     >
       <Text style={styles.moodEmoji}>{emoji}</Text>
       <Text style={[styles.moodLabel, selected && styles.moodLabelSelected]}>{label}</Text>
+      {caption !== undefined && (
+        <Text style={styles.moodCaption} numberOfLines={2}>
+          {caption}
+        </Text>
+      )}
       {selected && (
         <View style={styles.moodCheck}>
           <Ionicons
@@ -226,20 +282,53 @@ const MoodTile = ({ emoji, label, selected, onPress, testID }: MoodTileProps) =>
   );
 };
 
+type ProgressLinkProps = {
+  label: string;
+  onPress: () => void;
+};
+
+// Centered red text link with a trailing arrow — placeholder footer link to a
+// future Progress screen. The route does not exist yet; the tap handler is a no-op.
+const ProgressLink = ({ label, onPress }: ProgressLinkProps) => {
+  const { theme } = useUnistyles();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="link"
+      accessibilityLabel={label}
+      style={({ pressed }) => [styles.progressLink, pressed && styles.progressLinkPressed]}
+    >
+      <Ionicons
+        name="bar-chart-outline"
+        size={theme.iconSize.button}
+        color={theme.colors.brand.primary}
+      />
+      <Text style={styles.progressLinkLabel}>{label}</Text>
+      <Ionicons
+        name="arrow-forward"
+        size={theme.iconSize.button}
+        color={theme.colors.brand.primary}
+      />
+    </Pressable>
+  );
+};
+
 const styles = StyleSheet.create(theme => ({
   container: {
     flex: 1,
     backgroundColor: theme.colors.bg.app,
   },
-  content: {
+  scroll: {
     flex: 1,
+  },
+  content: {
     padding: theme.spacing.s4,
     gap: theme.spacing.s4,
   },
   heroBlock: {
     alignItems: 'center',
     gap: theme.spacing.s1,
-    paddingVertical: theme.spacing.s3,
+    paddingVertical: theme.spacing.s2,
   },
   heroTitle: {
     fontSize: theme.typography.size.h2,
@@ -280,15 +369,16 @@ const styles = StyleSheet.create(theme => ({
   },
   moodTile: {
     flex: 1,
-    minHeight: 100,
+    minHeight: 120,
     backgroundColor: theme.colors.bg.surface,
     borderWidth: 1,
     borderColor: theme.colors.border.default,
     borderRadius: theme.radius.lg,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     gap: theme.spacing.s1,
     paddingVertical: theme.spacing.s3,
+    paddingHorizontal: theme.spacing.s2,
   },
   moodTileSelected: {
     borderWidth: 2,
@@ -299,18 +389,23 @@ const styles = StyleSheet.create(theme => ({
     opacity: 0.7,
   },
   moodEmoji: {
-    fontSize: 40,
+    fontSize: 36,
   },
   moodLabel: {
     fontSize: theme.typography.size.body,
-    fontWeight: theme.typography.weight.medium,
-    fontFamily: theme.typography.family.medium,
+    fontWeight: theme.typography.weight.bold,
+    fontFamily: theme.typography.family.bold,
     color: theme.colors.text.primary,
   },
   moodLabelSelected: {
     color: theme.colors.brand.primary,
-    fontWeight: theme.typography.weight.bold,
-    fontFamily: theme.typography.family.bold,
+  },
+  moodCaption: {
+    fontSize: theme.typography.size.caption,
+    fontWeight: theme.typography.weight.regular,
+    fontFamily: theme.typography.family.regular,
+    color: theme.colors.text.secondary,
+    textAlign: 'center',
   },
   moodCheck: {
     position: 'absolute',
@@ -322,6 +417,10 @@ const styles = StyleSheet.create(theme => ({
     backgroundColor: theme.colors.brand.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.s3,
   },
   rightValue: {
     fontSize: theme.typography.size.body,
@@ -335,5 +434,21 @@ const styles = StyleSheet.create(theme => ({
   },
   buttonFlex: {
     flex: 1,
+  },
+  progressLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: theme.spacing.s2,
+    paddingVertical: theme.spacing.s2,
+  },
+  progressLinkPressed: {
+    opacity: 0.6,
+  },
+  progressLinkLabel: {
+    fontSize: theme.typography.size.body,
+    fontWeight: theme.typography.weight.semibold,
+    fontFamily: theme.typography.family.semibold,
+    color: theme.colors.brand.primary,
   },
 }));

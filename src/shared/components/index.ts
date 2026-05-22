@@ -53,5 +53,7 @@ export { WeekBars } from './WeekBars';
 export type { WeekBarsProps, WeekBarState } from './WeekBars';
 export { InfoNoticeRow } from './InfoNoticeRow';
 export type { InfoNoticeRowProps } from './InfoNoticeRow';
+export { StreakBanner } from './StreakBanner';
+export type { StreakBannerProps } from './StreakBanner';
 export { QuickActionTile } from './QuickActionTile';
 export type { QuickActionTileProps, QuickActionTileVariant } from './QuickActionTile';
