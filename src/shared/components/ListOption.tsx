@@ -1,25 +1,35 @@
-import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import React, { ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 
 export type ListOptionProps = {
-  emoji: string;
+  iconName: ComponentProps<typeof Ionicons>['name'];
+  iconBackground: string;
+  iconColor: string;
   title: string;
   bpm: string;
   description: string;
+  // Optional right-side text label shown when not selected (e.g. legacy rhythm summary).
   rightLabel?: string;
+  // When true, swaps `rightLabel` for the "SELECTED" red pill and applies the red theme.
   selected: boolean;
+  selectedLabel?: string;
   onPress: () => void;
 };
 
 // Pressable row for pace selection (Gentle, Steady, Energizing).
+// Leading tinted icon container + title/bpm/description block + optional right label or SELECTED pill.
 export const ListOption = ({
-  emoji,
+  iconName,
+  iconBackground,
+  iconColor,
   title,
   bpm,
   description,
   rightLabel,
   selected,
+  selectedLabel = 'SELECTED',
   onPress,
 }: ListOptionProps) => (
   <Pressable
@@ -29,21 +39,27 @@ export const ListOption = ({
     accessibilityState={{ selected }}
     style={[styles.container, selected ? styles.selected : styles.default]}
   >
-    <Text style={styles.emoji}>{emoji}</Text>
+    <View style={[styles.iconWrap, { backgroundColor: iconBackground }]}>
+      <Ionicons name={iconName} size={20} color={iconColor} />
+    </View>
     <View style={styles.center}>
       <View style={styles.titleRow}>
         <Text style={[styles.title, selected && styles.titleSelected]} numberOfLines={1}>
           {title}
         </Text>
-        <Text style={[styles.bpm, selected && styles.bpmSelected]}>{bpm}</Text>
+        <Text style={styles.bpm}>{bpm}</Text>
       </View>
-      <Text style={styles.description} numberOfLines={1}>
+      <Text style={styles.description} numberOfLines={2}>
         {description}
       </Text>
     </View>
-    {rightLabel !== undefined && (
-      <Text style={[styles.rightLabel, selected && styles.rightLabelSelected]}>{rightLabel}</Text>
-    )}
+    {selected ? (
+      <View style={styles.selectedPill}>
+        <Text style={styles.selectedPillText}>{selectedLabel}</Text>
+      </View>
+    ) : rightLabel !== undefined ? (
+      <Text style={styles.rightLabel}>{rightLabel}</Text>
+    ) : null}
   </Pressable>
 );
 
@@ -61,15 +77,19 @@ const styles = StyleSheet.create(theme => ({
     borderColor: theme.colors.border.default,
   },
   selected: {
-    backgroundColor: theme.colors.accent.infoSurface,
-    borderColor: theme.colors.accent.infoBorder,
+    backgroundColor: theme.colors.brand.primarySoft,
+    borderColor: theme.colors.brand.primarySoftBorder,
   },
-  emoji: {
-    fontSize: theme.typography.size.h2,
+  iconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: theme.radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   center: {
     flex: 1,
-    gap: theme.spacing.s2,
+    gap: theme.spacing.s1,
   },
   titleRow: {
     flexDirection: 'row',
@@ -83,16 +103,13 @@ const styles = StyleSheet.create(theme => ({
     color: theme.colors.text.primary,
   },
   titleSelected: {
-    color: theme.colors.accent.info,
+    color: theme.colors.brand.primary,
   },
   bpm: {
     fontSize: theme.typography.size.caption,
     fontWeight: theme.typography.weight.regular,
     fontFamily: theme.typography.family.regular,
     color: theme.colors.text.secondary,
-  },
-  bpmSelected: {
-    color: theme.colors.accent.info,
   },
   description: {
     fontSize: theme.typography.size.caption,
@@ -101,14 +118,24 @@ const styles = StyleSheet.create(theme => ({
     color: theme.colors.text.secondary,
   },
   rightLabel: {
-    width: 100,
+    maxWidth: 100,
     textAlign: 'right',
     fontSize: theme.typography.size.caption,
     fontWeight: theme.typography.weight.medium,
     fontFamily: theme.typography.family.medium,
     color: theme.colors.text.secondary,
   },
-  rightLabelSelected: {
-    color: theme.colors.accent.info,
+  selectedPill: {
+    paddingHorizontal: theme.spacing.s2,
+    paddingVertical: 4,
+    borderRadius: theme.radius.sm,
+    backgroundColor: theme.colors.brand.primary,
+  },
+  selectedPillText: {
+    fontSize: 10,
+    fontWeight: theme.typography.weight.bold,
+    fontFamily: theme.typography.family.bold,
+    color: theme.colors.brand.onPrimary,
+    letterSpacing: 0.5,
   },
 }));

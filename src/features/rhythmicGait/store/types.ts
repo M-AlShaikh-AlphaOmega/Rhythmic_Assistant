@@ -23,6 +23,7 @@ export interface Preferences {
   bigTextMode: boolean;
   volume: number; // 0..1
   hapticStrength: HapticStrength;
+  hapticOnTap: boolean;
   emergencyContact?: string;
   lastMood?: MoodMarker;
 }

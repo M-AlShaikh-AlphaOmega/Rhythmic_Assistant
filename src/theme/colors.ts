@@ -3,7 +3,9 @@
 const palette = {
   red700: '#8B1529',
   red600: '#A41E37',
+  red200: '#F4C9D2',
   red100: '#FBE8EC',
+  red50: '#FDF3F5',
   blue600: '#2563EB',
   blue500: '#5B8DEF',
   blue200: '#BFD3FF',
@@ -36,6 +38,11 @@ export const colors = {
     primaryDisabled: palette.gray300,
     primarySurface: palette.red100,
     onPrimary: palette.white,
+    // Low-intensity red used for selection states (cards/tiles/rows). Sits below
+    // `primary` in visual weight so it never competes with CTA buttons.
+    primarySoft: palette.red100,
+    primarySoftBorder: palette.red200,
+    primaryTint: palette.red50,
   },
   // Accent / information (selected states, hero banner, Active badge, ring progress)
   accent: {

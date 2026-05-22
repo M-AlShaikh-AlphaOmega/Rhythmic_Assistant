@@ -36,6 +36,7 @@ const DEFAULT_PREFERENCES: Preferences = {
   bigTextMode: true,
   volume: 0.7,
   hapticStrength: 'strong',
+  hapticOnTap: false,
   emergencyContact: undefined,
   lastMood: undefined,
 };

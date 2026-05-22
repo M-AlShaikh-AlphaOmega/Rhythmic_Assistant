@@ -33,3 +33,7 @@ export { CountdownBadge } from './CountdownBadge';
 export type { CountdownBadgeProps } from './CountdownBadge';
 export { CircularProgressTimer } from './CircularProgressTimer';
 export type { CircularProgressTimerProps } from './CircularProgressTimer';
+export { SteppedSlider } from './SteppedSlider';
+export type { SteppedSliderProps, SteppedSliderOption } from './SteppedSlider';
+export { DashedActionTile } from './DashedActionTile';
+export type { DashedActionTileProps } from './DashedActionTile';

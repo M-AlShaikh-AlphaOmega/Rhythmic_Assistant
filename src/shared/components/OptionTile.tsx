@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { ComponentProps } from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 export type OptionTileProps = {
@@ -12,6 +12,7 @@ export type OptionTileProps = {
 };
 
 // Pressable vertical tile for cue-type selection (Audio, Vibration, Combined).
+// Selected state uses the brand-red soft theme and shows a small check badge top-right.
 export const OptionTile = ({ iconName, title, description, selected, onPress }: OptionTileProps) => {
   const { theme } = useUnistyles();
 
@@ -23,10 +24,15 @@ export const OptionTile = ({ iconName, title, description, selected, onPress }: 
       accessibilityState={{ selected }}
       style={[styles.container, selected ? styles.selected : styles.default]}
     >
+      {selected && (
+        <View style={styles.checkBadge}>
+          <Ionicons name="checkmark" size={12} color={theme.colors.brand.onPrimary} />
+        </View>
+      )}
       <Ionicons
         name={iconName}
         size={theme.iconSize.tile}
-        color={selected ? theme.colors.accent.info : theme.colors.text.primary}
+        color={selected ? theme.colors.brand.primary : theme.colors.text.primary}
       />
       <Text style={[styles.title, selected && styles.titleSelected]}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
@@ -48,8 +54,19 @@ const styles = StyleSheet.create(theme => ({
     borderColor: theme.colors.border.default,
   },
   selected: {
-    backgroundColor: theme.colors.accent.infoSurface,
-    borderColor: theme.colors.accent.infoBorder,
+    backgroundColor: theme.colors.brand.primarySoft,
+    borderColor: theme.colors.brand.primarySoftBorder,
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: theme.spacing.s2,
+    right: theme.spacing.s2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: theme.colors.brand.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: theme.typography.size.title,
@@ -59,7 +76,7 @@ const styles = StyleSheet.create(theme => ({
     textAlign: 'center',
   },
   titleSelected: {
-    color: theme.colors.accent.info,
+    color: theme.colors.brand.primary,
   },
   description: {
     fontSize: theme.typography.size.caption,
